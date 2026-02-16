@@ -31,33 +31,45 @@ declare global {
 
 function waitForKakao(): Promise<void> {
   return new Promise((resolve, reject) => {
-    let attempts = 0;
-    const check = setInterval(() => {
-      attempts++;
-      console.log(`[KakaoMap] 시도 ${attempts}:`, {
-        kakao: !!window.kakao,
-        maps: !!(window.kakao && window.kakao.maps),
-        LatLng: !!(window.kakao && window.kakao.maps && window.kakao.maps.LatLng),
-      });
-      
+    // 이미 로드된 경우
+    if (window.kakao && window.kakao.maps && window.kakao.maps.LatLng) {
+      resolve();
+      return;
+    }
+
+    // 이미 로드 중이면 대기
+    if (window.kakao && window.kakao.maps) {
+      window.kakao.maps.load(() => resolve());
+      return;
+    }
+
+    // 기존 스크립트 제거
+    const existing = document.querySelector('script[src*="dapi.kakao.com"]');
+    if (existing) existing.remove();
+
+    // 새로 스크립트 생성
+    const script = document.createElement('script');
+    script.src = 'https://dapi.kakao.com/v2/maps/sdk.js?appkey=여기에새키입력&autoload=false';
+    script.async = true;
+
+    script.onload = () => {
+      console.log('[KakaoMap] SDK 스크립트 로드 성공');
       if (window.kakao && window.kakao.maps) {
-        if (window.kakao.maps.LatLng) {
-          clearInterval(check);
-          console.log('[KakaoMap] 이미 로드됨!');
+        window.kakao.maps.load(() => {
+          console.log('[KakaoMap] maps.load() 완료');
           resolve();
-        } else {
-          clearInterval(check);
-          console.log('[KakaoMap] maps.load() 호출');
-          window.kakao.maps.load(() => {
-            console.log('[KakaoMap] maps.load() 완료!');
-            resolve();
-          });
-        }
-      } else if (attempts > 100) {
-        clearInterval(check);
-        reject(new Error('Kakao Maps SDK 로드 시간 초과'));
+        });
+      } else {
+        reject(new Error('Kakao Maps SDK 초기화 실패'));
       }
-    }, 300);
+    };
+
+    script.onerror = (e) => {
+      console.error('[KakaoMap] SDK 스크립트 로드 실패', e);
+      reject(new Error('Kakao Maps SDK 스크립트 로드 실패'));
+    };
+
+    document.head.appendChild(script);
   });
 }
 
@@ -217,5 +229,6 @@ export default function KakaoMap({
     </div>
   );
 }
+
 
 
