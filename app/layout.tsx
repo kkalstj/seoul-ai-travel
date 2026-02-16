@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import Script from 'next/script';
 import './globals.css';
 import Header from '@/components/layout/Header';
 import BottomNav from '@/components/layout/BottomNav';
@@ -20,10 +19,6 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body className={`${inter.className} bg-gray-50`}>
-        <Script
-          src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=b77467552d5af29c5dcb5d497f5cdb83&autoload=false"
-          strategy="beforeInteractive"
-        />
         <Header />
         <main className="pb-20 md:pb-0">{children}</main>
         <BottomNav />
