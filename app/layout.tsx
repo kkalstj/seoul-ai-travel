@@ -19,10 +19,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ko">
-      <head>
-        <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=b77467552d5af29c5dcb5d497f5cdb83&autoload=false" />
-      </head>
       <body className={`${inter.className} bg-gray-50`}>
+        <Script
+          src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=b77467552d5af29c5dcb5d497f5cdb83&autoload=false"
+          strategy="beforeInteractive"
+        />
         <Header />
         <main className="pb-20 md:pb-0">{children}</main>
         <BottomNav />
