@@ -120,7 +120,11 @@ export default function KakaoMap({
         position,
         map,
         icon: {
-          content: `<div style="
+          content: '<div style="width: ' + size + 'px; height: ' + size + 'px; background: ' + color + '; border: 2px solid white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); cursor: pointer;"></div>',
+          size: new window.naver.maps.Size(size, size),
+          anchor: new window.naver.maps.Point(size / 2, size / 2),
+        },
+      });
             width: ${size}px; height: ${size}px;
             background: ${color}; border: 2px solid white;
             border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3);
@@ -201,4 +205,5 @@ export default function KakaoMap({
     </div>
   );
 }
+
 
