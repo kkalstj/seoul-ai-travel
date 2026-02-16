@@ -34,20 +34,30 @@ function waitForKakao(): Promise<void> {
     let attempts = 0;
     const check = setInterval(() => {
       attempts++;
+      console.log(`[KakaoMap] 시도 ${attempts}:`, {
+        kakao: !!window.kakao,
+        maps: !!(window.kakao && window.kakao.maps),
+        LatLng: !!(window.kakao && window.kakao.maps && window.kakao.maps.LatLng),
+      });
+      
       if (window.kakao && window.kakao.maps) {
-        clearInterval(check);
         if (window.kakao.maps.LatLng) {
+          clearInterval(check);
+          console.log('[KakaoMap] 이미 로드됨!');
           resolve();
         } else {
+          clearInterval(check);
+          console.log('[KakaoMap] maps.load() 호출');
           window.kakao.maps.load(() => {
+            console.log('[KakaoMap] maps.load() 완료!');
             resolve();
           });
         }
-      } else if (attempts > 50) {
+      } else if (attempts > 100) {
         clearInterval(check);
         reject(new Error('Kakao Maps SDK 로드 시간 초과'));
       }
-    }, 200);
+    }, 300);
   });
 }
 
@@ -207,3 +217,4 @@ export default function KakaoMap({
     </div>
   );
 }
+
