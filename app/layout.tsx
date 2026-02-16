@@ -20,7 +20,7 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <head>
-        <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=a3eeb0e344aa9f27199a01a187dd636c&autoload=false" />
+        <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=b77467552d5af29c5dcb5d497f5cdb83&autoload=false" />
       </head>
       <body className={`${inter.className} bg-gray-50`}>
         <Header />
