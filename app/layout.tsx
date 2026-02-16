@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import Script from 'next/script';
 import './globals.css';
 import Header from '@/components/layout/Header';
 import BottomNav from '@/components/layout/BottomNav';
@@ -19,11 +18,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ko">
+      <head>
+        <script src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=6jvl5ytzca" defer></script>
+      </head>
       <body className={`${inter.className} bg-gray-50`}>
-        <Script
-          src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=6jvl5ytzca"
-          strategy="beforeInteractive"
-        />
         <Header />
         <main className="pb-20 md:pb-0">{children}</main>
         <BottomNav />
