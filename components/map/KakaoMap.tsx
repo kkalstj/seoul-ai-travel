@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { loadKakaoMap } from '@/lib/kakao/loader';
 import { SEOUL_CENTER, DEFAULT_ZOOM, PLACE_COLORS } from '@/lib/utils/constants';
 
 export interface MapPlace {
@@ -24,6 +23,34 @@ interface KakaoMapProps {
   className?: string;
 }
 
+declare global {
+  interface Window {
+    kakao: any;
+  }
+}
+
+function waitForKakao(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    let attempts = 0;
+    const check = setInterval(() => {
+      attempts++;
+      if (window.kakao && window.kakao.maps) {
+        clearInterval(check);
+        if (window.kakao.maps.LatLng) {
+          resolve();
+        } else {
+          window.kakao.maps.load(() => {
+            resolve();
+          });
+        }
+      } else if (attempts > 50) {
+        clearInterval(check);
+        reject(new Error('Kakao Maps SDK 로드 시간 초과'));
+      }
+    }, 200);
+  });
+}
+
 export default function KakaoMap({
   places = [],
   selectedPlaceId,
@@ -39,9 +66,8 @@ export default function KakaoMap({
   const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 지도 초기화
   useEffect(() => {
-    loadKakaoMap()
+    waitForKakao()
       .then(() => {
         if (!mapRef.current) return;
 
@@ -53,7 +79,6 @@ export default function KakaoMap({
         const map = new window.kakao.maps.Map(mapRef.current, options);
         mapInstanceRef.current = map;
 
-        // 줌 컨트롤 추가
         const zoomControl = new window.kakao.maps.ZoomControl();
         map.addControl(zoomControl, window.kakao.maps.ControlPosition.RIGHT);
 
@@ -64,17 +89,14 @@ export default function KakaoMap({
       });
   }, []);
 
-  // 마커 업데이트
   useEffect(() => {
     if (!isReady || !mapInstanceRef.current) return;
 
     const map = mapInstanceRef.current;
 
-    // 기존 마커 제거
     markersRef.current.forEach((marker) => marker.setMap(null));
     markersRef.current = [];
 
-    // 기존 오버레이 제거
     if (overlayRef.current) {
       overlayRef.current.setMap(null);
       overlayRef.current = null;
@@ -87,12 +109,7 @@ export default function KakaoMap({
     places.forEach((place) => {
       if (!place.latitude || !place.longitude) return;
 
-      const position = new window.kakao.maps.LatLng(
-        place.latitude,
-        place.longitude
-      );
-
-      // 마커 색상 (SVG 마커)
+      const position = new window.kakao.maps.LatLng(place.latitude, place.longitude);
       const color = PLACE_COLORS[place.type] || '#666';
       const isSelected = place.id === selectedPlaceId;
       const size = isSelected ? 16 : 10;
@@ -100,123 +117,72 @@ export default function KakaoMap({
       const markerContent = document.createElement('div');
       markerContent.innerHTML = `
         <div style="
-          width: ${size}px;
-          height: ${size}px;
-          background: ${color};
-          border: 2px solid white;
-          border-radius: 50%;
-          box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-          cursor: pointer;
-          transition: all 0.2s;
+          width: ${size}px; height: ${size}px;
+          background: ${color}; border: 2px solid white;
+          border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+          cursor: pointer; transition: all 0.2s;
           ${isSelected ? 'transform: scale(1.3);' : ''}
         "></div>
       `;
 
       const customOverlay = new window.kakao.maps.CustomOverlay({
-        position,
-        content: markerContent,
-        yAnchor: 0.5,
-        xAnchor: 0.5,
+        position, content: markerContent, yAnchor: 0.5, xAnchor: 0.5,
       });
 
       customOverlay.setMap(map);
       markersRef.current.push(customOverlay);
 
-      // 클릭 이벤트
       markerContent.addEventListener('click', () => {
-        // 정보 오버레이 표시
-        if (overlayRef.current) {
-          overlayRef.current.setMap(null);
-        }
+        if (overlayRef.current) overlayRef.current.setMap(null);
 
         const ratingHtml = place.rating
-          ? `<span style="color: #f59e0b; font-size: 12px;">★ ${place.rating.toFixed(1)}</span>`
-          : '';
-
+          ? `<span style="color: #f59e0b; font-size: 12px;">★ ${place.rating.toFixed(1)}</span>` : '';
         const categoryHtml = place.category
-          ? `<span style="background: ${color}20; color: ${color}; padding: 1px 6px; border-radius: 8px; font-size: 11px;">${place.category}</span>`
-          : '';
+          ? `<span style="background: ${color}20; color: ${color}; padding: 1px 6px; border-radius: 8px; font-size: 11px;">${place.category}</span>` : '';
 
         const infoContent = document.createElement('div');
         infoContent.innerHTML = `
-          <div style="
-            background: white;
-            border-radius: 12px;
-            padding: 12px 14px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-            min-width: 180px;
-            max-width: 250px;
-            position: relative;
-          ">
-            <div style="font-weight: 700; font-size: 14px; color: #111; margin-bottom: 4px;">
-              ${place.name}
-            </div>
-            <div style="display: flex; gap: 6px; align-items: center; margin-bottom: 4px;">
-              ${categoryHtml} ${ratingHtml}
-            </div>
-            ${place.address ? `<div style="font-size: 12px; color: #888; line-clamp: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${place.address}</div>` : ''}
-            <div style="
-              position: absolute;
-              bottom: -8px;
-              left: 50%;
-              transform: translateX(-50%);
-              width: 0;
-              height: 0;
-              border-left: 8px solid transparent;
-              border-right: 8px solid transparent;
-              border-top: 8px solid white;
-            "></div>
+          <div style="background: white; border-radius: 12px; padding: 12px 14px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15); min-width: 180px; max-width: 250px; position: relative;">
+            <div style="font-weight: 700; font-size: 14px; color: #111; margin-bottom: 4px;">${place.name}</div>
+            <div style="display: flex; gap: 6px; align-items: center; margin-bottom: 4px;">${categoryHtml} ${ratingHtml}</div>
+            ${place.address ? `<div style="font-size: 12px; color: #888; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${place.address}</div>` : ''}
+            <div style="position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
+              width: 0; height: 0; border-left: 8px solid transparent;
+              border-right: 8px solid transparent; border-top: 8px solid white;"></div>
           </div>
         `;
 
         const infoOverlay = new window.kakao.maps.CustomOverlay({
-          position,
-          content: infoContent,
-          yAnchor: 1.5,
+          position, content: infoContent, yAnchor: 1.5,
         });
 
         infoOverlay.setMap(map);
         overlayRef.current = infoOverlay;
-
-        // 지도 중심 이동
         map.panTo(position);
 
-        if (onMarkerClick) {
-          onMarkerClick(place);
-        }
+        if (onMarkerClick) onMarkerClick(place);
       });
 
       bounds.extend(position);
     });
 
-    // 모든 마커가 보이도록 지도 범위 조정
     if (places.length > 1) {
       map.setBounds(bounds);
     } else if (places.length === 1 && places[0].latitude && places[0].longitude) {
-      map.setCenter(
-        new window.kakao.maps.LatLng(places[0].latitude, places[0].longitude)
-      );
+      map.setCenter(new window.kakao.maps.LatLng(places[0].latitude, places[0].longitude));
       map.setLevel(5);
     }
   }, [isReady, places, selectedPlaceId, onMarkerClick]);
 
-  // 지도 클릭 시 오버레이 닫기
   useEffect(() => {
     if (!isReady || !mapInstanceRef.current) return;
-
     const map = mapInstanceRef.current;
     const clickListener = () => {
-      if (overlayRef.current) {
-        overlayRef.current.setMap(null);
-        overlayRef.current = null;
-      }
+      if (overlayRef.current) { overlayRef.current.setMap(null); overlayRef.current = null; }
     };
-
     window.kakao.maps.event.addListener(map, 'click', clickListener);
-
-    return () => {
-      window.kakao.maps.event.removeListener(map, 'click', clickListener);
-    };
+    return () => { window.kakao.maps.event.removeListener(map, 'click', clickListener); };
   }, [isReady]);
 
   if (error) {
