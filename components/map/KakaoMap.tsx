@@ -49,7 +49,7 @@ function waitForKakao(): Promise<void> {
 
     // 새로 스크립트 생성
     const script = document.createElement('script');
-    script.src = 'https://dapi.kakao.com/v2/maps/sdk.js?appkey=여기에새키입력&autoload=false';
+    script.src = 'https://dapi.kakao.com/v2/maps/sdk.js?appkey=b77467552d5af29c5dcb5d497f5cdb83&autoload=false';
     script.async = true;
 
     script.onload = () => {
@@ -229,6 +229,7 @@ export default function KakaoMap({
     </div>
   );
 }
+
 
 
 
