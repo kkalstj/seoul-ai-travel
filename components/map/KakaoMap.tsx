@@ -31,6 +31,10 @@ declare global {
 
 function waitForNaver(): Promise<void> {
   return new Promise((resolve, reject) => {
+    if (window.naver && window.naver.maps) {
+      resolve();
+      return;
+    }
     let attempts = 0;
     const check = setInterval(() => {
       attempts++;
@@ -44,7 +48,6 @@ function waitForNaver(): Promise<void> {
     }, 200);
   });
 }
-
 export default function KakaoMap({
   places = [],
   selectedPlaceId,
@@ -198,3 +201,4 @@ export default function KakaoMap({
     </div>
   );
 }
+
