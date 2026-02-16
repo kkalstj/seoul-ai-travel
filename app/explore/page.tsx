@@ -7,7 +7,7 @@ import Pagination from '@/components/ui/Pagination';
 import CategoryFilter from '@/components/filters/CategoryFilter';
 import PlaceCard from '@/components/cards/PlaceCard';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
-import KakaoMap from '@/components/map/KakaoMap';
+import KakaoMap from '@/components/map/NaverMap';
 import type { MapPlace } from '@/components/map/KakaoMap';
 import {
   EXPLORE_TABS,
@@ -326,4 +326,5 @@ export default function ExplorePage() {
       </div>
     </div>
   );
+
 }
