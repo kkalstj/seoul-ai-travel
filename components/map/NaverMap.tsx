@@ -48,6 +48,7 @@ function waitForNaver(): Promise<void> {
     }, 200);
   });
 }
+
 export default function KakaoMap({
   places = [],
   selectedPlaceId,
@@ -63,7 +64,6 @@ export default function KakaoMap({
   const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 지도 초기화
   useEffect(() => {
     waitForNaver()
       .then(() => {
@@ -71,7 +71,7 @@ export default function KakaoMap({
 
         const map = new window.naver.maps.Map(mapRef.current, {
           center: new window.naver.maps.LatLng(center.lat, center.lng),
-          zoom: 15 - zoom + 3,
+          zoom: 14,
           zoomControl: true,
           zoomControlOptions: {
             position: window.naver.maps.Position.TOP_RIGHT,
@@ -80,7 +80,6 @@ export default function KakaoMap({
 
         mapInstanceRef.current = map;
 
-        // 지도 클릭 시 정보창 닫기
         window.naver.maps.Event.addListener(map, 'click', () => {
           if (infoWindowRef.current) {
             infoWindowRef.current.close();
@@ -94,13 +93,11 @@ export default function KakaoMap({
       });
   }, []);
 
-  // 마커 업데이트
   useEffect(() => {
     if (!isReady || !mapInstanceRef.current) return;
 
     const map = mapInstanceRef.current;
 
-    // 기존 마커 제거
     markersRef.current.forEach((marker) => marker.setMap(null));
     markersRef.current = [];
 
@@ -116,47 +113,39 @@ export default function KakaoMap({
       const isSelected = place.id === selectedPlaceId;
       const size = isSelected ? 16 : 10;
 
+      var markerHtml = '<div style="width: ' + size + 'px; height: ' + size + 'px; background: ' + color + '; border: 2px solid white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); cursor: pointer;"></div>';
+
       const marker = new window.naver.maps.Marker({
-        position,
-        map,
+        position: position,
+        map: map,
         icon: {
-          content: '<div style="width: ' + size + 'px; height: ' + size + 'px; background: ' + color + '; border: 2px solid white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); cursor: pointer;"></div>',
+          content: markerHtml,
           size: new window.naver.maps.Size(size, size),
-          anchor: new window.naver.maps.Point(size / 2, size / 2),
-        },
-      });
-            width: ${size}px; height: ${size}px;
-            background: ${color}; border: 2px solid white;
-            border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-            cursor: pointer; transition: all 0.2s;
-            ${isSelected ? 'transform: scale(1.3);' : ''}
-          "></div>`,
           anchor: new window.naver.maps.Point(size / 2, size / 2),
         },
       });
 
       markersRef.current.push(marker);
 
-      // 클릭 이벤트
-      window.naver.maps.Event.addListener(marker, 'click', () => {
+      window.naver.maps.Event.addListener(marker, 'click', function() {
         if (infoWindowRef.current) {
           infoWindowRef.current.close();
         }
 
-        const ratingHtml = place.rating
-          ? `<span style="color: #f59e0b; font-size: 12px;">★ ${place.rating.toFixed(1)}</span>` : '';
-        const categoryHtml = place.category
-          ? `<span style="background: ${color}20; color: ${color}; padding: 1px 6px; border-radius: 8px; font-size: 11px;">${place.category}</span>` : '';
+        var ratingText = place.rating ? ' ★ ' + place.rating.toFixed(1) : '';
+        var categoryText = place.category ? place.category : '';
 
-        const infoWindow = new window.naver.maps.InfoWindow({
-          content: `
-            <div style="background: white; border-radius: 12px; padding: 12px 14px;
-              box-shadow: 0 4px 20px rgba(0,0,0,0.15); min-width: 180px; max-width: 250px;">
-              <div style="font-weight: 700; font-size: 14px; color: #111; margin-bottom: 4px;">${place.name}</div>
-              <div style="display: flex; gap: 6px; align-items: center; margin-bottom: 4px;">${categoryHtml} ${ratingHtml}</div>
-              ${place.address ? `<div style="font-size: 12px; color: #888; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${place.address}</div>` : ''}
-            </div>
-          `,
+        var infoHtml = '<div style="background: white; border-radius: 12px; padding: 12px 14px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); min-width: 180px; max-width: 250px;">' +
+          '<div style="font-weight: 700; font-size: 14px; color: #111; margin-bottom: 4px;">' + place.name + '</div>' +
+          '<div style="display: flex; gap: 6px; align-items: center; margin-bottom: 4px;">' +
+            (categoryText ? '<span style="background: ' + color + '20; color: ' + color + '; padding: 1px 6px; border-radius: 8px; font-size: 11px;">' + categoryText + '</span>' : '') +
+            (ratingText ? '<span style="color: #f59e0b; font-size: 12px;">' + ratingText + '</span>' : '') +
+          '</div>' +
+          (place.address ? '<div style="font-size: 12px; color: #888; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">' + place.address + '</div>' : '') +
+        '</div>';
+
+        var infoWindow = new window.naver.maps.InfoWindow({
+          content: infoHtml,
           borderWidth: 0,
           backgroundColor: 'transparent',
           disableAnchor: true,
@@ -174,7 +163,6 @@ export default function KakaoMap({
       bounds.extend(position);
     });
 
-    // 모든 마커가 보이도록 지도 범위 조정
     if (places.length > 1) {
       map.fitBounds(bounds);
     } else if (places.length === 1 && places[0].latitude && places[0].longitude) {
@@ -205,5 +193,3 @@ export default function KakaoMap({
     </div>
   );
 }
-
-
