@@ -14,7 +14,7 @@ export interface MapPlace {
   category?: string | null;
 }
 
-interface NaverMapProps {
+interface LeafletMapProps {
   places?: MapPlace[];
   selectedPlaceId?: string | null;
   onMarkerClick?: (place: MapPlace) => void;
@@ -25,27 +25,27 @@ interface NaverMapProps {
 
 declare global {
   interface Window {
-    naver: any;
+    L: any;
   }
 }
 
-function waitForNaver(): Promise<void> {
+function loadLeaflet(): Promise<void> {
   return new Promise((resolve, reject) => {
-    if (window.naver && window.naver.maps) {
+    if (window.L) {
       resolve();
       return;
     }
-    let attempts = 0;
-    const check = setInterval(() => {
-      attempts++;
-      if (window.naver && window.naver.maps) {
-        clearInterval(check);
-        resolve();
-      } else if (attempts > 100) {
-        clearInterval(check);
-        reject(new Error('Naver Maps SDK 로드 시간 초과'));
-      }
-    }, 200);
+
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+    document.head.appendChild(link);
+
+    var script = document.createElement('script');
+    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    script.onload = function() { resolve(); };
+    script.onerror = function() { reject(new Error('Leaflet 로드 실패')); };
+    document.head.appendChild(script);
   });
 }
 
@@ -56,124 +56,101 @@ export default function KakaoMap({
   center = SEOUL_CENTER,
   zoom = DEFAULT_ZOOM,
   className = '',
-}: NaverMapProps) {
-  const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<any>(null);
-  const markersRef = useRef<any[]>([]);
-  const infoWindowRef = useRef<any>(null);
-  const [isReady, setIsReady] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+}: LeafletMapProps) {
+  var mapRef = useRef<HTMLDivElement>(null);
+  var mapInstanceRef = useRef<any>(null);
+  var markersRef = useRef<any[]>([]);
+  var [isReady, setIsReady] = useState(false);
+  var [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    waitForNaver()
-      .then(() => {
+  useEffect(function() {
+    loadLeaflet()
+      .then(function() {
         if (!mapRef.current) return;
+        if (mapInstanceRef.current) return;
 
-        const map = new window.naver.maps.Map(mapRef.current, {
-          center: new window.naver.maps.LatLng(center.lat, center.lng),
-          zoom: 14,
-          zoomControl: true,
-          zoomControlOptions: {
-            position: window.naver.maps.Position.TOP_RIGHT,
-          },
-        });
+        var map = window.L.map(mapRef.current).setView([center.lat, center.lng], 14);
+
+        window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; OpenStreetMap contributors',
+          maxZoom: 19,
+        }).addTo(map);
 
         mapInstanceRef.current = map;
-
-        window.naver.maps.Event.addListener(map, 'click', () => {
-          if (infoWindowRef.current) {
-            infoWindowRef.current.close();
-          }
-        });
-
         setIsReady(true);
       })
-      .catch((err) => {
+      .catch(function(err: any) {
         setError(err.message);
       });
+
+    return function() {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
   }, []);
 
-  useEffect(() => {
+  useEffect(function() {
     if (!isReady || !mapInstanceRef.current) return;
 
-    const map = mapInstanceRef.current;
+    var map = mapInstanceRef.current;
 
-    markersRef.current.forEach((marker) => marker.setMap(null));
+    markersRef.current.forEach(function(marker) { map.removeLayer(marker); });
     markersRef.current = [];
 
     if (places.length === 0) return;
 
-    const bounds = new window.naver.maps.LatLngBounds();
+    var bounds: any[] = [];
 
-    places.forEach((place) => {
+    places.forEach(function(place) {
       if (!place.latitude || !place.longitude) return;
 
-      const position = new window.naver.maps.LatLng(place.latitude, place.longitude);
-      const color = PLACE_COLORS[place.type] || '#666';
-      const isSelected = place.id === selectedPlaceId;
-      const size = isSelected ? 16 : 10;
+      var color = PLACE_COLORS[place.type] || '#666';
+      var isSelected = place.id === selectedPlaceId;
+      var size = isSelected ? 16 : 10;
 
-      var markerHtml = '<div style="width: ' + size + 'px; height: ' + size + 'px; background: ' + color + '; border: 2px solid white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); cursor: pointer;"></div>';
-
-      const marker = new window.naver.maps.Marker({
-        position: position,
-        map: map,
-        icon: {
-          content: markerHtml,
-          size: new window.naver.maps.Size(size, size),
-          anchor: new window.naver.maps.Point(size / 2, size / 2),
-        },
+      var icon = window.L.divIcon({
+        html: '<div style="width: ' + size + 'px; height: ' + size + 'px; background: ' + color + '; border: 2px solid white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3);"></div>',
+        className: '',
+        iconSize: [size, size],
+        iconAnchor: [size / 2, size / 2],
       });
 
-      markersRef.current.push(marker);
+      var marker = window.L.marker([place.latitude, place.longitude], { icon: icon }).addTo(map);
 
-      window.naver.maps.Event.addListener(marker, 'click', function() {
-        if (infoWindowRef.current) {
-          infoWindowRef.current.close();
-        }
+      var ratingText = place.rating ? ' ★ ' + place.rating.toFixed(1) : '';
+      var categoryText = place.category ? '<span style="background: ' + color + '20; color: ' + color + '; padding: 1px 6px; border-radius: 8px; font-size: 11px;">' + place.category + '</span>' : '';
+      var ratingHtml = ratingText ? '<span style="color: #f59e0b; font-size: 12px;">' + ratingText + '</span>' : '';
+      var addressHtml = place.address ? '<div style="font-size: 12px; color: #888; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px;">' + place.address + '</div>' : '';
 
-        var ratingText = place.rating ? ' ★ ' + place.rating.toFixed(1) : '';
-        var categoryText = place.category ? place.category : '';
-
-        var infoHtml = '<div style="background: white; border-radius: 12px; padding: 12px 14px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); min-width: 180px; max-width: 250px;">' +
-          '<div style="font-weight: 700; font-size: 14px; color: #111; margin-bottom: 4px;">' + place.name + '</div>' +
-          '<div style="display: flex; gap: 6px; align-items: center; margin-bottom: 4px;">' +
-            (categoryText ? '<span style="background: ' + color + '20; color: ' + color + '; padding: 1px 6px; border-radius: 8px; font-size: 11px;">' + categoryText + '</span>' : '') +
-            (ratingText ? '<span style="color: #f59e0b; font-size: 12px;">' + ratingText + '</span>' : '') +
-          '</div>' +
-          (place.address ? '<div style="font-size: 12px; color: #888; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">' + place.address + '</div>' : '') +
+      var popupHtml = '<div style="min-width: 180px;">' +
+        '<div style="font-weight: 700; font-size: 14px; color: #111; margin-bottom: 4px;">' + place.name + '</div>' +
+        '<div style="display: flex; gap: 6px; align-items: center; margin-bottom: 4px;">' + categoryText + ratingHtml + '</div>' +
+        addressHtml +
         '</div>';
 
-        var infoWindow = new window.naver.maps.InfoWindow({
-          content: infoHtml,
-          borderWidth: 0,
-          backgroundColor: 'transparent',
-          disableAnchor: true,
-          pixelOffset: new window.naver.maps.Point(0, -10),
-        });
+      marker.bindPopup(popupHtml, { closeButton: true, className: 'custom-popup' });
 
-        infoWindow.open(map, marker);
-        infoWindowRef.current = infoWindow;
-
-        map.panTo(position);
-
+      marker.on('click', function() {
+        map.setView([place.latitude, place.longitude], map.getZoom());
         if (onMarkerClick) onMarkerClick(place);
       });
 
-      bounds.extend(position);
+      markersRef.current.push(marker);
+      bounds.push([place.latitude, place.longitude]);
     });
 
-    if (places.length > 1) {
-      map.fitBounds(bounds);
-    } else if (places.length === 1 && places[0].latitude && places[0].longitude) {
-      map.setCenter(new window.naver.maps.LatLng(places[0].latitude, places[0].longitude));
-      map.setZoom(15);
+    if (bounds.length > 1) {
+      map.fitBounds(bounds, { padding: [30, 30] });
+    } else if (bounds.length === 1) {
+      map.setView(bounds[0], 15);
     }
   }, [isReady, places, selectedPlaceId, onMarkerClick]);
 
   if (error) {
     return (
-      <div className={`flex items-center justify-center bg-gray-100 rounded-xl ${className}`}>
+      <div className={'flex items-center justify-center bg-gray-100 rounded-xl ' + className}>
         <div className="text-center p-6">
           <p className="text-red-500 font-medium">지도를 불러올 수 없습니다</p>
           <p className="text-gray-400 text-sm mt-1">{error}</p>
@@ -183,8 +160,8 @@ export default function KakaoMap({
   }
 
   return (
-    <div className={`relative ${className}`}>
-      <div ref={mapRef} className="w-full h-full rounded-xl" />
+    <div className={'relative ' + className}>
+      <div ref={mapRef} className="w-full h-full rounded-xl" style={{ minHeight: '400px' }} />
       {!isReady && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-xl">
           <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
