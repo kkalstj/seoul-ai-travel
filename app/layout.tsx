@@ -18,9 +18,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ko">
-      <head>
-        <script src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=6jvl5ytzca" defer></script>
-      </head>
       <body className={`${inter.className} bg-gray-50`}>
         <Header />
         <main className="pb-20 md:pb-0">{children}</main>
