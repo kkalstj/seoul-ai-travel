@@ -85,7 +85,7 @@ export default function SharedCoursePage() {
 
       {mapPlaces.length > 0 && showMap && (
         <div className="mb-6">
-          <KakaoMap places={mapPlaces} className="h-80" />
+          <KakaoMap places={mapPlaces} className="h-48" />
         </div>
       )}
 
