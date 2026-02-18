@@ -161,7 +161,7 @@ export default function KakaoMap({
 
   return (
     <div className={'relative ' + className}>
-      <div ref={mapRef} className="w-full h-full rounded-xl" style={{ minHeight: '400px' }} />
+      <div ref={mapRef} className="w-full h-full rounded-xl" style={{ minHeight: '300px' }} />
       {!isReady && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-xl">
           <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
@@ -170,3 +170,4 @@ export default function KakaoMap({
     </div>
   );
 }
+
