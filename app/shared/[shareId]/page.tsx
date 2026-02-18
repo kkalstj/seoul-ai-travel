@@ -84,36 +84,37 @@ export default function SharedCoursePage() {
       </div>
 
       {mapPlaces.length > 0 && showMap && (
-        <div className="mb-6">
+        <div className="mb-6 relative" style={{ zIndex: 0 }}>
           <KakaoMap places={mapPlaces} className="h-48" />
         </div>
       )}
 
-      <div className="space-y-2">
-        {course.places.map(function(place: any, index: number) {
-          return (
-            <div key={place.id} className="bg-white rounded-xl p-3 shadow-sm border flex items-center gap-3">
-              <span className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold">
-                {index + 1}
-              </span>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-0.5">
-                  <span className={'text-xs px-2 py-0.5 rounded-full ' + (typeColors[place.place_type] || 'bg-gray-100 text-gray-600')}>
-                    {typeLabels[place.place_type] || place.place_type}
-                  </span>
-                  <span className="font-medium text-sm truncate">{place.place_name}</span>
+      <div className="relative" style={{ zIndex: 10 }}>
+        <div className="space-y-2">
+          {course.places.map(function(place: any, index: number) {
+            return (
+              <div key={place.id} className="bg-white rounded-xl p-3 shadow-sm border flex items-center gap-3">
+                <span className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold">
+                  {index + 1}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <span className={'text-xs px-2 py-0.5 rounded-full ' + (typeColors[place.place_type] || 'bg-gray-100 text-gray-600')}>
+                      {typeLabels[place.place_type] || place.place_type}
+                    </span>
+                    <span className="font-medium text-sm truncate">{place.place_name}</span>
+                  </div>
+                  {place.place_address && (
+                    <p className="text-xs text-gray-400 truncate">{place.place_address}</p>
+                  )}
                 </div>
-                {place.place_address && (
-                  <p className="text-xs text-gray-400 truncate">{place.place_address}</p>
+                {place.place_rating && (
+                  <span className="text-xs text-yellow-500">★ {place.place_rating.toFixed(1)}</span>
                 )}
               </div>
-              {place.place_rating && (
-                <span className="text-xs text-yellow-500">★ {place.place_rating.toFixed(1)}</span>
-              )}
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </div>
   );
-}
