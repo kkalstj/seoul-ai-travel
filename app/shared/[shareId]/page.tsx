@@ -84,9 +84,9 @@ export default function SharedCoursePage() {
       </div>
 
       {mapPlaces.length > 0 && showMap && (
-        <div className="mb-6 relative" style={{ zIndex: 0 }}>
-          <KakaoMap places={mapPlaces} className="h-48" />
-        </div>
+       <div className="mb-6" style={{ position: 'relative', zIndex: 0, height: '300px' }}>
+  <KakaoMap places={mapPlaces} className="h-full" />
+</div>
       )}
 
       <div className="relative" style={{ zIndex: 10 }}>
