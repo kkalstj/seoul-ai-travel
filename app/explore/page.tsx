@@ -336,12 +336,14 @@ export default function ExplorePage() {
        placeType={reviewPlace.type}
        placeName={reviewPlace.name}
        onClose={() => setReviewPlace(null)}
+       onReviewAdded={() => fetchData()} 
      />
    )}
     </div>
   );
 
 }
+
 
 
 
