@@ -1,10 +1,12 @@
 'use client';
-import { MapPin } from 'lucide-react';
+import { MapPin, User } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useAuth } from '@/components/auth/AuthProvider';
 
 export default function Header() {
-  const pathname = usePathname();
+  var pathname = usePathname();
+  var { user, loading } = useAuth();
 
   return (
     <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-100">
@@ -34,6 +36,23 @@ export default function Header() {
           >
             내 여행
           </Link>
+          {!loading && (
+            user ? (
+              <Link
+                href="/profile"
+                className={'ml-2 p-2 rounded-full transition-colors ' + (pathname.startsWith('/profile') ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-gray-100')}
+              >
+                <User size={18} />
+              </Link>
+            ) : (
+              <Link
+                href="/auth"
+                className="ml-2 px-3 py-1.5 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                로그인
+              </Link>
+            )
+          )}
         </nav>
       </div>
     </header>
