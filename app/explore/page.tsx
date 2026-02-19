@@ -1,6 +1,5 @@
 'use client';
 
-import ReviewModal from '@/components/reviews/ReviewModal';
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import SearchBar from '@/components/ui/SearchBar';
@@ -17,6 +16,7 @@ import {
   PAGE_SIZE,
 } from '@/lib/utils/constants';
 import { Map, List, X } from 'lucide-react';
+import ReviewModal from '@/components/reviews/ReviewModal';
 
 type TabKey = 'restaurant' | 'accommodation' | 'attraction';
 type ViewMode = 'list' | 'map' | 'split';
@@ -31,7 +31,8 @@ export default function ExplorePage() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('split');
   const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
-
+  const [reviewPlace, setReviewPlace] = useState<any>(null);
+  
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   // 데이터 조회
@@ -255,21 +256,25 @@ export default function ExplorePage() {
                     }`}
                   >
                     <PlaceCard
+                      id={item.id}
                       name={item.name}
                       type={activeTab}
                       address={item.address}
                       rating={item.rating}
+                      latitude={item.latitude}
+                      longitude={item.longitude}
                       category={
                         activeTab === 'restaurant'
                           ? item.food_type
                           : activeTab === 'accommodation'
                           ? item.accommodation_type
                           : item.category
-                      }
-                      description={item.description}
-                      reviewCount={item.review_count}
-                      onClick={() => handleCardClick(item.id)}
-                    />
+                     }
+                     description={item.description}
+                     reviewCount={item.review_count}
+                     onClick={() => handleCardClick(item.id)}
+                     onReviewClick={() => setReviewPlace({ id: item.id, name: item.name, type: activeTab })}
+                   />
                   </div>
                 ))}
               </div>
@@ -329,4 +334,5 @@ export default function ExplorePage() {
   );
 
 }
+
 
