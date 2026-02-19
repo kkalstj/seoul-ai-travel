@@ -1,5 +1,6 @@
 'use client';
 
+import ReviewModal from '@/components/reviews/ReviewModal';
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import SearchBar from '@/components/ui/SearchBar';
@@ -328,3 +329,4 @@ export default function ExplorePage() {
   );
 
 }
+
