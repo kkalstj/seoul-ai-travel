@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import Header from '@/components/layout/Header';
 import BottomNav from '@/components/layout/BottomNav';
+import AuthProvider from '@/components/auth/AuthProvider';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -19,9 +20,11 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body className={`${inter.className} bg-gray-50`}>
-        <Header />
-        <main className="pb-20 md:pb-0">{children}</main>
-        <BottomNav />
+        <AuthProvider>
+          <Header />
+          <main className="pb-20 md:pb-0">{children}</main>
+          <BottomNav />
+        </AuthProvider>
       </body>
     </html>
   );
