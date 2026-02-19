@@ -10,9 +10,10 @@ interface ReviewModalProps {
   placeType: string;
   placeName: string;
   onClose: () => void;
+  onReviewAdded?: () => void;
 }
 
-export default function ReviewModal({ placeId, placeType, placeName, onClose }: ReviewModalProps) {
+export default function ReviewModal({ placeId, placeType, placeName, onClose, onReviewAdded }: ReviewModalProps) {
   var { user } = useAuth();
   var [reviews, setReviews] = useState<any[]>([]);
   var [loading, setLoading] = useState(true);
@@ -59,6 +60,7 @@ export default function ReviewModal({ placeId, placeType, placeName, onClose }: 
       setRating(0);
       setContent('');
       await loadReviews();
+      if (onReviewAdded) onReviewAdded();
     } catch (err: any) {
       console.error('리뷰 작성 실패:', err);
       alert('리뷰 작성에 실패했습니다.');
