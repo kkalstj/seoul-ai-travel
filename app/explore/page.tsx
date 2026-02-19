@@ -330,9 +330,18 @@ export default function ExplorePage() {
           )}
         </button>
       </div>
+    {reviewPlace && (
+      <ReviewModal
+       placeId={reviewPlace.id}
+       placeType={reviewPlace.type}
+       placeName={reviewPlace.name}
+       onClose={() => setReviewPlace(null)}
+     />
+   )}
     </div>
   );
 
 }
+
 
 
