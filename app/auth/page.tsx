@@ -2,15 +2,16 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { MapPin, Mail, Lock, User, ArrowLeft } from 'lucide-react';
+import { MapPin, Mail, Lock } from 'lucide-react';
 import { signIn, signUp } from '@/lib/supabase/auth';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 export default function AuthPage() {
   var router = useRouter();
+  var { t } = useLanguage();
   var [isLogin, setIsLogin] = useState(true);
   var [email, setEmail] = useState('');
   var [password, setPassword] = useState('');
-  var [nickname, setNickname] = useState('');
   var [loading, setLoading] = useState(false);
   var [error, setError] = useState('');
   var [success, setSuccess] = useState('');
@@ -27,16 +28,16 @@ export default function AuthPage() {
         router.push('/profile');
       } else {
         await signUp(email, password);
-        setSuccess('회원가입 성공! 이메일 인증 후 로그인해주세요.');
+        setSuccess(t('auth.signupSuccess'));
         setIsLogin(true);
       }
     } catch (err: any) {
       if (err.message === 'Invalid login credentials') {
-        setError('이메일 또는 비밀번호가 올바르지 않습니다.');
+        setError(t('auth.invalidCredentials'));
       } else if (err.message === 'User already registered') {
-        setError('이미 가입된 이메일입니다.');
+        setError(t('auth.alreadyRegistered'));
       } else {
-        setError(err.message || '오류가 발생했습니다.');
+        setError(err.message || t('ai.error'));
       }
     } finally {
       setLoading(false);
@@ -52,7 +53,7 @@ export default function AuthPage() {
           </div>
           <h1 className="text-2xl font-bold text-gray-900">Seoul AI Travel</h1>
           <p className="text-gray-500 text-sm mt-1">
-            {isLogin ? '로그인하고 더 많은 기능을 이용하세요' : '회원가입하고 여행을 시작하세요'}
+            {isLogin ? t('auth.loginHint') : t('auth.signupHint')}
           </p>
         </div>
 
@@ -64,7 +65,7 @@ export default function AuthPage() {
                 type="email"
                 value={email}
                 onChange={function(e) { setEmail(e.target.value); }}
-                placeholder="이메일"
+                placeholder={t('auth.email')}
                 required
                 className="w-full pl-10 pr-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
@@ -78,7 +79,7 @@ export default function AuthPage() {
                 type="password"
                 value={password}
                 onChange={function(e) { setPassword(e.target.value); }}
-                placeholder="비밀번호 (6자 이상)"
+                placeholder={t('auth.password')}
                 required
                 minLength={6}
                 className="w-full pl-10 pr-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -103,7 +104,7 @@ export default function AuthPage() {
             disabled={loading}
             className="w-full bg-blue-600 text-white py-2.5 rounded-xl font-medium hover:bg-blue-700 transition disabled:opacity-50"
           >
-            {loading ? '처리 중...' : isLogin ? '로그인' : '회원가입'}
+            {loading ? t('auth.processing') : isLogin ? t('auth.login') : t('auth.signup')}
           </button>
         </form>
 
@@ -112,7 +113,7 @@ export default function AuthPage() {
             onClick={function() { setIsLogin(!isLogin); setError(''); setSuccess(''); }}
             className="text-sm text-blue-600 hover:underline"
           >
-            {isLogin ? '계정이 없으신가요? 회원가입' : '이미 계정이 있으신가요? 로그인'}
+            {isLogin ? t('auth.noAccount') : t('auth.hasAccount')}
           </button>
         </div>
 
@@ -121,7 +122,7 @@ export default function AuthPage() {
             onClick={function() { router.push('/'); }}
             className="text-sm text-gray-400 hover:text-gray-600"
           >
-            둘러보기
+            {t('auth.browse')}
           </button>
         </div>
       </div>
