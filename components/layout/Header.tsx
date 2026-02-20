@@ -1,12 +1,24 @@
 'use client';
-import { MapPin, User } from 'lucide-react';
+import { useState } from 'react';
+import { MapPin, User, Globe } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/components/auth/AuthProvider';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
+import type { Locale } from '@/lib/i18n/translations';
+
+var langOptions: { code: Locale; label: string }[] = [
+  { code: 'ko', label: '한국어' },
+  { code: 'en', label: 'English' },
+  { code: 'ja', label: '日本語' },
+  { code: 'zh', label: '中文' },
+];
 
 export default function Header() {
   var pathname = usePathname();
   var { user, loading } = useAuth();
+  var { locale, setLocale, t } = useLanguage();
+  var [showLang, setShowLang] = useState(false);
 
   return (
     <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-100">
@@ -22,34 +34,61 @@ export default function Header() {
             href="/explore"
             className={'px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ' + (pathname.startsWith('/explore') ? 'text-blue-600 bg-blue-50' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50')}
           >
-            탐색
+            {t('nav.explore')}
           </Link>
           <Link
             href="/ai-recommend"
             className={'px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ' + (pathname.startsWith('/ai-recommend') ? 'text-blue-600 bg-blue-50' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50')}
           >
-            AI 추천
+            {t('nav.ai')}
           </Link>
           <Link
             href="/my-trip"
             className={'px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ' + (pathname.startsWith('/my-trip') ? 'text-blue-600 bg-blue-50' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50')}
           >
-            내 여행
+            {t('nav.myTrip')}
           </Link>
+
+          {/* 언어 선택 */}
+          <div className="relative ml-2">
+            <button
+              onClick={function() { setShowLang(!showLang); }}
+              className="flex items-center gap-1 px-2 py-1.5 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition"
+            >
+              <Globe size={16} />
+              <span className="text-xs">{langOptions.find(function(l) { return l.code === locale; })?.label}</span>
+            </button>
+            {showLang && (
+              <div className="absolute right-0 top-full mt-1 bg-white border rounded-lg shadow-lg py-1 min-w-[100px] z-50">
+                {langOptions.map(function(lang) {
+                  return (
+                    <button
+                      key={lang.code}
+                      onClick={function() { setLocale(lang.code); setShowLang(false); }}
+                      className={'w-full text-left px-3 py-1.5 text-sm hover:bg-gray-50 ' + (locale === lang.code ? 'text-blue-600 font-medium' : 'text-gray-700')}
+                    >
+                      {lang.label}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
           {!loading && (
             user ? (
               <Link
                 href="/profile"
-                className={'ml-2 p-2 rounded-full transition-colors ' + (pathname.startsWith('/profile') ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-gray-100')}
+                className={'ml-1 p-2 rounded-full transition-colors ' + (pathname.startsWith('/profile') ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-gray-100')}
               >
                 <User size={18} />
               </Link>
             ) : (
               <Link
                 href="/auth"
-                className="ml-2 px-3 py-1.5 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="ml-1 px-3 py-1.5 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
-                로그인
+                {t('nav.login')}
               </Link>
             )
           )}
