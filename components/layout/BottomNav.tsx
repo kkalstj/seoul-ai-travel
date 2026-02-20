@@ -3,16 +3,18 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Search, Sparkles, Heart, User } from 'lucide-react';
 import { useAuth } from '@/components/auth/AuthProvider';
-
-var navItems = [
-  { href: '/explore', icon: Search, label: '탐색' },
-  { href: '/ai-recommend', icon: Sparkles, label: 'AI 추천' },
-  { href: '/my-trip', icon: Heart, label: '내 여행' },
-];
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 export default function BottomNav() {
   var pathname = usePathname();
   var { user } = useAuth();
+  var { t } = useLanguage();
+
+  var navItems = [
+    { href: '/explore', icon: Search, label: t('nav.explore') },
+    { href: '/ai-recommend', icon: Sparkles, label: t('nav.ai') },
+    { href: '/my-trip', icon: Heart, label: t('nav.myTrip') },
+  ];
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-lg border-t border-gray-100 md:hidden">
@@ -36,7 +38,7 @@ export default function BottomNav() {
           className={'flex flex-col items-center gap-1 px-3 py-1 rounded-xl transition-colors ' + (pathname.startsWith('/profile') || pathname.startsWith('/auth') ? 'text-blue-600' : 'text-gray-400')}
         >
           <User className="w-5 h-5" />
-          <span className="text-xs font-medium">{user ? '프로필' : '로그인'}</span>
+          <span className="text-xs font-medium">{user ? t('nav.profile') : t('nav.login')}</span>
         </Link>
       </div>
     </nav>
