@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { X, Star, Send } from 'lucide-react';
+import { X, Star, Send, Trash2 } from 'lucide-react';
 import { useAuth } from '@/components/auth/AuthProvider';
-import { getPlaceReviews, addReview } from '@/lib/supabase/interactions';
+import { getPlaceReviews, addReview, deleteReview } from '@/lib/supabase/interactions';
 
 interface ReviewModalProps {
   placeId: string;
@@ -69,6 +69,18 @@ export default function ReviewModal({ placeId, placeType, placeName, onClose, on
     }
   }
 
+  async function handleDelete(reviewId: string) {
+    if (!confirm('리뷰를 삭제하시겠습니까?')) return;
+    try {
+      await deleteReview(reviewId);
+      await loadReviews();
+      if (onReviewAdded) onReviewAdded();
+    } catch (err) {
+      console.error('리뷰 삭제 실패:', err);
+      alert('리뷰 삭제에 실패했습니다.');
+    }
+  }
+
   function formatDate(dateStr: string) {
     var date = new Date(dateStr);
     return date.getFullYear() + '.' + String(date.getMonth() + 1).padStart(2, '0') + '.' + String(date.getDate()).padStart(2, '0');
@@ -81,7 +93,6 @@ export default function ReviewModal({ placeId, placeType, placeName, onClose, on
         className="relative bg-white rounded-2xl w-full max-w-md max-h-[80vh] overflow-hidden flex flex-col"
         onClick={function(e) { e.stopPropagation(); }}
       >
-        {/* 헤더 */}
         <div className="flex items-center justify-between p-4 border-b">
           <div>
             <h3 className="font-bold text-gray-900">{placeName}</h3>
@@ -92,7 +103,6 @@ export default function ReviewModal({ placeId, placeType, placeName, onClose, on
           </button>
         </div>
 
-        {/* 리뷰 작성 */}
         {user && (
           <div className="p-4 border-b bg-gray-50">
             <div className="flex items-center gap-1 mb-2">
@@ -140,7 +150,6 @@ export default function ReviewModal({ placeId, placeType, placeName, onClose, on
           </div>
         )}
 
-        {/* 리뷰 목록 */}
         <div className="flex-1 overflow-y-auto p-4">
           {loading ? (
             <div className="flex justify-center py-8">
@@ -155,13 +164,30 @@ export default function ReviewModal({ placeId, placeType, placeName, onClose, on
           ) : (
             <div className="space-y-4">
               {reviews.map(function(review) {
+                var isMyReview = user && user.id === review.user_id;
                 return (
                   <div key={review.id} className="border-b pb-3 last:border-0">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-medium text-gray-900">
-                        {review.profiles?.nickname || '익명'}
-                      </span>
-                      <span className="text-xs text-gray-400">{formatDate(review.created_at)}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-gray-900">
+                          {review.profiles?.nickname || '익명'}
+                        </span>
+                        {isMyReview && (
+                          <span className="text-xs bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded">내 리뷰</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-400">{formatDate(review.created_at)}</span>
+                        {isMyReview && (
+                          <button
+                            onClick={function() { handleDelete(review.id); }}
+                            className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition"
+                            title="삭제"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        )}
+                      </div>
                     </div>
                     <div className="flex items-center gap-0.5 mb-1">
                       {[1, 2, 3, 4, 5].map(function(star) {
