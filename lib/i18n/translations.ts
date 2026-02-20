@@ -112,6 +112,9 @@ export var translations: Record<Locale, Record<string, string>> = {
     'home.subtitle': 'AI가 추천하는 맛집, 관광지, 숙소를 탐색하고 나만의 여행 코스를 만들어보세요',
     'home.startExplore': '탐색 시작하기',
     'home.aiRecommend': 'AI 추천 받기',
+    'home.restaurantCount': '122,000+ 서울 맛집',
+    'home.accommodationCount': '900+ 호텔 · 게스트하우스',
+    'home.attractionCount': '700+ 명소 · 볼거리',
 
     // 언어
     'lang.ko': '한국어',
@@ -220,6 +223,9 @@ export var translations: Record<Locale, Record<string, string>> = {
     'home.subtitle': 'Discover AI-recommended restaurants, attractions, and hotels. Create your own travel course.',
     'home.startExplore': 'Start Exploring',
     'home.aiRecommend': 'Get AI Picks',
+    'home.restaurantCount': '122,000+ Restaurants',
+    'home.accommodationCount': '900+ Hotels & Guesthouses',
+    'home.attractionCount': '700+ Attractions & Landmarks',
 
     'lang.ko': '한국어',
     'lang.en': 'English',
@@ -327,6 +333,9 @@ export var translations: Record<Locale, Record<string, string>> = {
     'home.subtitle': 'AIおすすめのグルメ、観光地、宿泊施設を探して、自分だけの旅行コースを作りましょう',
     'home.startExplore': '探索を始める',
     'home.aiRecommend': 'AIおすすめ',
+    'home.restaurantCount': '122,000+ ソウルグルメ',
+    'home.accommodationCount': '900+ ホテル・ゲストハウス',
+    'home.attractionCount': '700+ 名所・見どころ',
 
     'lang.ko': '한국어',
     'lang.en': 'English',
@@ -434,6 +443,9 @@ export var translations: Record<Locale, Record<string, string>> = {
     'home.subtitle': '探索AI推荐的美食、景点和住宿，创建属于自己的旅行路线',
     'home.startExplore': '开始探索',
     'home.aiRecommend': 'AI推荐',
+    'home.restaurantCount': '122,000+ 首尔美食',
+    'home.accommodationCount': '900+ 酒店·民宿',
+    'home.attractionCount': '700+ 景点·名胜',
 
     'lang.ko': '한국어',
     'lang.en': 'English',
