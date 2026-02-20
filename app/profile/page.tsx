@@ -7,6 +7,7 @@ import { useAuth } from '@/components/auth/AuthProvider';
 import { signOut, getProfile, updateProfile } from '@/lib/supabase/auth';
 import { getMyFavorites } from '@/lib/supabase/interactions';
 import { getMyReviews } from '@/lib/supabase/interactions';
+import ReviewModal from '@/components/reviews/ReviewModal';
 
 export default function ProfilePage() {
   var router = useRouter();
@@ -18,6 +19,7 @@ export default function ProfilePage() {
   var [editingNickname, setEditingNickname] = useState(false);
   var [nicknameInput, setNicknameInput] = useState('');
   var [activeTab, setActiveTab] = useState<'favorites' | 'reviews'>('favorites');
+  var [reviewModal, setReviewModal] = useState<any>(null);
 
   useEffect(function() {
     if (!authLoading && !user) {
@@ -87,7 +89,6 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6">
-      {/* 프로필 헤더 */}
       <div className="bg-white rounded-2xl p-6 shadow-sm border mb-6">
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
@@ -132,7 +133,6 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* 탭 */}
       <div className="flex gap-2 mb-4">
         <button
           onClick={function() { setActiveTab('favorites'); }}
@@ -148,7 +148,6 @@ export default function ProfilePage() {
         </button>
       </div>
 
-      {/* 찜 목록 */}
       {activeTab === 'favorites' && (
         <div className="space-y-2">
           {favorites.length === 0 ? (
@@ -184,7 +183,6 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* 리뷰 목록 */}
       {activeTab === 'reviews' && (
         <div className="space-y-2">
           {reviews.length === 0 ? (
@@ -198,12 +196,17 @@ export default function ProfilePage() {
           ) : (
             reviews.map(function(rev) {
               return (
-                <div key={rev.id} className="bg-white rounded-xl p-4 shadow-sm border">
+                <div
+                  key={rev.id}
+                  className="bg-white rounded-xl p-4 shadow-sm border cursor-pointer hover:shadow-md transition"
+                  onClick={function() { setReviewModal({ id: rev.place_id, type: rev.place_type, name: rev.place_name }); }}
+                >
                   <div className="flex items-center gap-2 mb-2">
                     <span className={'text-xs px-2 py-0.5 rounded-full ' + (typeColors[rev.place_type] || 'bg-gray-100 text-gray-600')}>
                       {typeLabels[rev.place_type] || rev.place_type}
                     </span>
                     <span className="font-medium text-sm">{rev.place_name}</span>
+                    <span className="text-xs text-blue-500 ml-auto">리뷰 보기 →</span>
                   </div>
                   <div className="flex items-center gap-1 mb-1">
                     {[1, 2, 3, 4, 5].map(function(star) {
@@ -224,6 +227,16 @@ export default function ProfilePage() {
             })
           )}
         </div>
+      )}
+
+      {reviewModal && (
+        <ReviewModal
+          placeId={reviewModal.id}
+          placeType={reviewModal.type}
+          placeName={reviewModal.name}
+          onClose={function() { setReviewModal(null); }}
+          onReviewAdded={function() { loadData(); }}
+        />
       )}
     </div>
   );
