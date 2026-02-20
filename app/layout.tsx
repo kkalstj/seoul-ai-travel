@@ -4,6 +4,7 @@ import './globals.css';
 import Header from '@/components/layout/Header';
 import BottomNav from '@/components/layout/BottomNav';
 import AuthProvider from '@/components/auth/AuthProvider';
+import LanguageProvider from '@/lib/i18n/LanguageContext';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -20,11 +21,13 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body className={`${inter.className} bg-gray-50`}>
-        <AuthProvider>
-          <Header />
-          <main className="pb-20 md:pb-0">{children}</main>
-          <BottomNav />
-        </AuthProvider>
+        <LanguageProvider>
+          <AuthProvider>
+            <Header />
+            <main className="pb-20 md:pb-0">{children}</main>
+            <BottomNav />
+          </AuthProvider>
+        </LanguageProvider>
       </body>
     </html>
   );
