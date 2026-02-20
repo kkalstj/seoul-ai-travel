@@ -1,5 +1,6 @@
 'use client';
 
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { MapPin, Plus, Trash2, Share2, ChevronRight, Calendar } from 'lucide-react';
@@ -16,6 +17,7 @@ interface Course {
 }
 
 export default function MyTripPage() {
+  const { t } = useLanguage();
   const router = useRouter();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
@@ -83,13 +85,13 @@ export default function MyTripPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 py-6">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">나의 여행</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t('myTrip.title')}</h1>
         <button
           onClick={function() { setShowNewForm(true); }}
           className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700 transition"
         >
           <Plus size={18} />
-          새 코스
+          {t('myTrip.newCourse')}
         </button>
       </div>
 
@@ -100,7 +102,7 @@ export default function MyTripPage() {
             value={newTitle}
             onChange={function(e) { setNewTitle(e.target.value); }}
             onKeyDown={function(e) { if (e.key === 'Enter') handleCreateCourse(); }}
-            placeholder="코스 이름을 입력하세요"
+            placeholder="{t('myTrip.courseName')}"
             className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 mb-3"
             autoFocus
           />
@@ -109,13 +111,13 @@ export default function MyTripPage() {
               onClick={function() { setShowNewForm(false); setNewTitle(''); }}
               className="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700"
             >
-              취소
+              {t('myTrip.cancel')}
             </button>
             <button
               onClick={handleCreateCourse}
               className="px-4 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700"
             >
-              만들기
+              {t('myTrip.create')}
             </button>
           </div>
         </div>
@@ -124,13 +126,13 @@ export default function MyTripPage() {
       {courses.length === 0 ? (
         <div className="text-center py-20">
           <MapPin size={48} className="mx-auto text-gray-300 mb-4" />
-          <p className="text-gray-500 text-lg mb-2">저장된 여행 코스가 없어요</p>
-          <p className="text-gray-400 text-sm mb-6">AI 추천을 저장하거나 직접 코스를 만들어보세요</p>
+          <p className="text-gray-500 text-lg mb-2">{t('myTrip.noCourses')}</p>
+          <p className="text-gray-400 text-sm mb-6">{t('myTrip.noCoursesHint')}</p>
           <button
             onClick={function() { setShowNewForm(true); }}
             className="bg-blue-600 text-white px-6 py-2.5 rounded-xl font-medium hover:bg-blue-700 transition"
           >
-            첫 코스 만들기
+            {t('myTrip.firstCourse')}
           </button>
         </div>
       ) : (
@@ -161,7 +163,7 @@ export default function MyTripPage() {
                       title="공유 링크 복사"
                     >
                       {copiedId === course.share_id ? (
-                        <span className="text-xs text-green-500 font-medium">복사됨!</span>
+                        <span className="text-xs text-green-500 font-medium">{t('myTrip.copied')}</span>
                       ) : (
                         <Share2 size={16} />
                       )}
