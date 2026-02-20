@@ -30,6 +30,8 @@ export default function ReviewModal({ placeId, placeType, placeName, onClose, on
     try {
       var data = await getPlaceReviews(placeId, placeType);
       setReviews(data || []);
+      console.log('리뷰 데이터:', data);
+      console.log('현재 user:', user);
     } catch (err) {
       console.error('리뷰 로드 실패:', err);
     } finally {
@@ -163,8 +165,10 @@ export default function ReviewModal({ placeId, placeType, placeName, onClose, on
             </div>
           ) : (
             <div className="space-y-4">
+              <div className="text-xs text-red-500">DEBUG: user={user ? user.id : 'null'}</div>
               {reviews.map(function(review) {
                 var isMyReview = user && user.id === review.user_id;
+                console.log('비교:', user?.id, review.user_id, isMyReview);
                 return (
                   <div key={review.id} className="border-b pb-3 last:border-0">
                     <div className="flex items-center justify-between mb-1">
