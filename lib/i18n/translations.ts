@@ -41,6 +41,10 @@ export var translations: Record<Locale, Record<string, string>> = {
     'ai.saving': '저장 중',
     'ai.savedMessage': '내 여행에 저장되었습니다!',
     'ai.goToMyTrip': '보러가기',
+    'ai.subtitle': '어떤 서울 여행을 계획하고 계신가요?\n아래 버튼을 누르거나 직접 물어보세요!',
+    'ai.newChat': '새 대화 시작',
+    'ai.error': '응답 실패',
+    'ai.errorMessage': '죄송합니다, 오류가 발생했습니다: ',
 
     // 내 여행
     'myTrip.title': '나의 여행',
@@ -159,6 +163,10 @@ export var translations: Record<Locale, Record<string, string>> = {
     'ai.saving': 'Saving',
     'ai.savedMessage': 'Saved to My Trip!',
     'ai.goToMyTrip': 'View',
+    'ai.subtitle': 'What kind of Seoul trip are you planning?\nTap a button below or ask me anything!',
+    'ai.newChat': 'New Chat',
+    'ai.error': 'Response failed',
+    'ai.errorMessage': 'Sorry, an error occurred: ',
 
     'myTrip.title': 'My Trip',
     'myTrip.newCourse': 'New Course',
@@ -269,6 +277,10 @@ export var translations: Record<Locale, Record<string, string>> = {
     'ai.saving': '保存中',
     'ai.savedMessage': 'マイトリップに保存しました！',
     'ai.goToMyTrip': '見に行く',
+    'ai.subtitle': 'どんなソウル旅行を計画していますか？\n下のボタンを押すか、直接聞いてください！',
+    'ai.newChat': '新しい会話',
+    'ai.error': '応答失敗',
+    'ai.errorMessage': '申し訳ありません、エラーが発生しました：',
 
     'myTrip.title': 'マイトリップ',
     'myTrip.newCourse': '新しいコース',
@@ -379,6 +391,10 @@ export var translations: Record<Locale, Record<string, string>> = {
     'ai.saving': '保存中',
     'ai.savedMessage': '已保存到我的旅行！',
     'ai.goToMyTrip': '去查看',
+    'ai.subtitle': '您在计划什么样的首尔旅行？\n点击下方按钮或直接提问！',
+    'ai.newChat': '新对话',
+    'ai.error': '响应失败',
+    'ai.errorMessage': '抱歉，发生了错误：',
 
     'myTrip.title': '我的旅行',
     'myTrip.newCourse': '新路线',
