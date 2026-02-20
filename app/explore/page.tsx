@@ -1,5 +1,6 @@
 'use client';
 
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import SearchBar from '@/components/ui/SearchBar';
@@ -22,6 +23,7 @@ type TabKey = 'restaurant' | 'accommodation' | 'attraction';
 type ViewMode = 'list' | 'map' | 'split';
 
 export default function ExplorePage() {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<TabKey>('restaurant');
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -147,8 +149,8 @@ export default function ExplorePage() {
       {/* 페이지 제목 + 뷰 모드 토글 */}
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">서울 여행지 탐색</h1>
-          <p className="text-gray-500 text-sm mt-1">맛집, 숙소, 관광지를 찾아보세요</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('explore.title')}</h1>
+          <p className="text-gray-500 text-sm mt-1">{t('explore.subtitle')}</p>
         </div>
 
         {/* 뷰 모드 전환 버튼 */}
@@ -203,7 +205,7 @@ export default function ExplorePage() {
       {/* 검색 */}
       <div className="mb-4">
         <SearchBar
-          placeholder={`${activeTab === 'restaurant' ? '음식점' : activeTab === 'accommodation' ? '숙소' : '관광지'} 이름으로 검색`}
+          placeholder={activeTab === 'restaurant' ? t('explore.searchRestaurant') : activeTab === 'accommodation' ? t('explore.searchAccommodation') : t('explore.searchAttraction')}
           onSearch={handleSearch}
         />
       </div>
@@ -221,7 +223,7 @@ export default function ExplorePage() {
 
       {/* 결과 건수 */}
       <div className="mb-4 text-sm text-gray-500">
-        총 <span className="font-semibold text-gray-900">{totalCount.toLocaleString()}</span>개
+        총 <span className="font-semibold text-gray-900">{totalCount.toLocaleString()}</span> {t('explore.count')}
         {searchKeyword && (
           <span>
             {' · '}검색: <span className="text-blue-600">"{searchKeyword}"</span>
@@ -243,8 +245,8 @@ export default function ExplorePage() {
               <LoadingSpinner />
             ) : data.length === 0 ? (
               <div className="text-center py-16 text-gray-400">
-                <p className="text-lg">검색 결과가 없습니다</p>
-                <p className="text-sm mt-1">다른 키워드로 검색해보세요</p>
+                <p className="text-lg">{t('explore.noResults')}</p>
+                <p className="text-sm mt-1">{t('explore.tryOther')}</p>
               </div>
             ) : (
               <div className="space-y-3 max-h-[calc(100vh-320px)] overflow-y-auto pr-2">
@@ -304,7 +306,7 @@ export default function ExplorePage() {
               />
               {/* 지도 위 장소 수 표시 */}
               <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-md text-xs font-medium text-gray-700 z-10">
-                지도에 {mapPlaces.length}개 표시 중
+                {mapPlaces.length} {t('explore.showOnMap')}
               </div>
             </div>
           </div>
@@ -320,12 +322,12 @@ export default function ExplorePage() {
           {viewMode === 'list' ? (
             <>
               <Map className="w-4 h-4" />
-              <span className="text-sm font-medium">지도 보기</span>
+              <span className="text-sm font-medium">{t('explore.mapView')}</span>
             </>
           ) : (
             <>
               <List className="w-4 h-4" />
-              <span className="text-sm font-medium">리스트 보기</span>
+              <span className="text-sm font-medium">{t('explore.listView')}</span>
             </>
           )}
         </button>
@@ -343,6 +345,7 @@ export default function ExplorePage() {
   );
 
 }
+
 
 
 
