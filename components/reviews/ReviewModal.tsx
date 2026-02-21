@@ -132,7 +132,7 @@ export default function ReviewModal({ placeId, placeType, placeName, onClose, on
                 value={content}
                 onChange={function(e) { setContent(e.target.value); }}
                 onKeyDown={function(e) { if (e.key === 'Enter') handleSubmit(); }}
-                placeholder="{t('review.write')}"
+                placeholder={t('review.write')}
                 className="flex-1 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <button
@@ -172,7 +172,7 @@ export default function ReviewModal({ placeId, placeType, placeName, onClose, on
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-medium text-gray-900">
-                          {review.profiles?.nickname || '{t('review.anonymous')}'}
+                          {review.profiles?.nickname || t('review.anonymous')}
                         </span>
                         {isMyReview && (
                           <span className="text-xs bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded">{t('review.myReview')}</span>
