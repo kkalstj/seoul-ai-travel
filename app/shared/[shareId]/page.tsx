@@ -1,5 +1,6 @@
 'use client';
 
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { MapPin } from 'lucide-react';
@@ -7,6 +8,7 @@ import { getCourseByShareId } from '@/lib/supabase/courses';
 import KakaoMap from '@/components/map/NaverMap';
 
 export default function SharedCoursePage() {
+  var { t } = useLanguage();
   var params = useParams();
   var shareId = params.shareId as string;
 
@@ -53,7 +55,7 @@ export default function SharedCoursePage() {
   if (error || !course) {
     return (
       <div className="text-center py-20">
-        <p className="text-gray-500">{error || '코스를 찾을 수 없습니다'}</p>
+        <p className="text-gray-500">{error || '{t('shared.notFound')}'}</p>
       </div>
     );
   }
@@ -80,7 +82,7 @@ export default function SharedCoursePage() {
         {course.description && (
           <p className="text-gray-500">{course.description}</p>
         )}
-        <p className="text-sm text-gray-400 mt-2">{course.places.length}개 장소</p>
+        <p className="text-sm text-gray-400 mt-2">{course.places.length}{t('shared.places')}</p>
       </div>
 
       {mapPlaces.length > 0 && showMap && (
