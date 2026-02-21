@@ -1,5 +1,6 @@
 'use client';
 
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { User, Heart, Star, LogOut, Edit2, Check } from 'lucide-react';
@@ -10,6 +11,7 @@ import { getMyReviews } from '@/lib/supabase/interactions';
 import ReviewModal from '@/components/reviews/ReviewModal';
 
 export default function ProfilePage() {
+  var { t } = useLanguage();
   var router = useRouter();
   var { user, loading: authLoading } = useAuth();
   var [profile, setProfile] = useState<any>(null);
@@ -128,7 +130,7 @@ export default function ProfilePage() {
             className="flex items-center gap-1 px-3 py-1.5 text-sm text-gray-500 border rounded-lg hover:bg-gray-50"
           >
             <LogOut size={14} />
-            로그아웃
+            {t('profile.logout')}
           </button>
         </div>
       </div>
@@ -138,13 +140,13 @@ export default function ProfilePage() {
           onClick={function() { setActiveTab('favorites'); }}
           className={'px-4 py-2 rounded-xl text-sm font-medium transition ' + (activeTab === 'favorites' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 border hover:bg-gray-50')}
         >
-          찜 목록 ({favorites.length})
+          {t('profile.favorites')} ({favorites.length})
         </button>
         <button
           onClick={function() { setActiveTab('reviews'); }}
           className={'px-4 py-2 rounded-xl text-sm font-medium transition ' + (activeTab === 'reviews' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 border hover:bg-gray-50')}
         >
-          내 리뷰 ({reviews.length})
+          {t('profile.reviews')} ({reviews.length})
         </button>
       </div>
 
@@ -153,9 +155,9 @@ export default function ProfilePage() {
           {favorites.length === 0 ? (
             <div className="text-center py-12">
               <Heart size={36} className="mx-auto text-gray-300 mb-3" />
-              <p className="text-gray-400">찜한 장소가 없어요</p>
+              <p className="text-gray-400">{t('profile.noFavorites')}</p>
               <button onClick={function() { router.push('/explore'); }} className="text-blue-600 text-sm mt-2 hover:underline">
-                장소 둘러보기
+                {t('profile.browsePlaces')}
               </button>
             </div>
           ) : (
@@ -188,9 +190,9 @@ export default function ProfilePage() {
           {reviews.length === 0 ? (
             <div className="text-center py-12">
               <Star size={36} className="mx-auto text-gray-300 mb-3" />
-              <p className="text-gray-400">작성한 리뷰가 없어요</p>
+              <p className="text-gray-400">{t('profile.noReviews')}</p>
               <button onClick={function() { router.push('/explore'); }} className="text-blue-600 text-sm mt-2 hover:underline">
-                장소 둘러보기
+                {t('profile.browsePlaces')}
               </button>
             </div>
           ) : (
@@ -206,7 +208,7 @@ export default function ProfilePage() {
                       {typeLabels[rev.place_type] || rev.place_type}
                     </span>
                     <span className="font-medium text-sm">{rev.place_name}</span>
-                    <span className="text-xs text-blue-500 ml-auto">리뷰 보기 →</span>
+                    <span className="text-xs text-blue-500 ml-auto">{t('profile.viewReview')} →</span>
                   </div>
                   <div className="flex items-center gap-1 mb-1">
                     {[1, 2, 3, 4, 5].map(function(star) {
