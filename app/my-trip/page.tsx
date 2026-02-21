@@ -53,7 +53,7 @@ export default function MyTripPage() {
   }
 
   async function handleDeleteCourse(courseId: string) {
-    if (!confirm('이 코스를 삭제하시겠습니까?')) return;
+    if (!confirm('{t('myTrip.delete') + '?'}')) return;
     try {
       await deleteCourse(courseId);
       setCourses(courses.filter(function(c) { return c.id !== courseId; }));
