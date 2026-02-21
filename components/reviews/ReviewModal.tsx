@@ -41,7 +41,7 @@ export default function ReviewModal({ placeId, placeType, placeName, onClose, on
 
   async function handleSubmit() {
     if (!user) {
-      alert('t('favorite.loginRequired')');
+      alert(t('favorite.loginRequired'));
       return;
     }
     if (rating === 0) {
