@@ -197,7 +197,7 @@ export default function ExplorePage() {
                 : 'bg-white text-gray-600 border border-gray-200 hover:border-blue-300'
             }`}
           >
-            {tab.label}
+            {tab.key === 'restaurant' ? t('explore.restaurant') : tab.key === 'accommodation' ? t('explore.accommodation') : t('explore.attraction')}
           </button>
         ))}
       </div>
@@ -225,13 +225,14 @@ export default function ExplorePage() {
       <div className="mb-4 text-sm text-gray-500">
         {t('explore.total')} <span className="font-semibold text-gray-900">{totalCount.toLocaleString()}</span> {t('explore.count')}
         {searchKeyword && (
+{searchKeyword && (
           <span>
-            {' · '}검색: <span className="text-blue-600">"{searchKeyword}"</span>
+            {' · '}{t('explore.search')}: <span className="text-blue-600">"{searchKeyword}"</span>
           </span>
         )}
         {selectedCategory && (
           <span>
-            {' · '}필터: <span className="text-blue-600">{selectedCategory}</span>
+            {' · '}{t('explore.filter')}: <span className="text-blue-600">{selectedCategory}</span>
           </span>
         )}
       </div>
@@ -345,6 +346,7 @@ export default function ExplorePage() {
   );
 
 }
+
 
 
 
