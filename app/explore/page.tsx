@@ -225,7 +225,6 @@ export default function ExplorePage() {
       <div className="mb-4 text-sm text-gray-500">
         {t('explore.total')} <span className="font-semibold text-gray-900">{totalCount.toLocaleString()}</span> {t('explore.count')}
         {searchKeyword && (
-{searchKeyword && (
           <span>
             {' · '}{t('explore.search')}: <span className="text-blue-600">"{searchKeyword}"</span>
           </span>
@@ -346,6 +345,7 @@ export default function ExplorePage() {
   );
 
 }
+
 
 
 
