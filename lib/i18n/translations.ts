@@ -137,6 +137,8 @@ export var translations: Record<Locale, Record<string, string>> = {
     'quick.shopping': '쇼핑 코스',
     'quick.shoppingPrompt': '서울 쇼핑 코스를 추천해주세요. 명동, 강남, 홍대 등 쇼핑 명소 위주로요.',
 
+    'filter.all':'전체',
+    
     'food.korean': '🍚 한식',
     'food.japanese': '🍣 일식',
     'food.chinese': '🥟 중식',
@@ -290,6 +292,8 @@ export var translations: Record<Locale, Record<string, string>> = {
     'quick.shopping': 'Shopping',
     'quick.shoppingPrompt': 'Please recommend a Seoul shopping course. Myeongdong, Gangnam, Hongdae etc.',
 
+    'filter.all': 'All',
+    
     'food.korean': '🍚 Korean',
     'food.japanese': '🍣 Japanese',
     'food.chinese': '🥟 Chinese',
@@ -442,6 +446,8 @@ export var translations: Record<Locale, Record<string, string>> = {
     'quick.shopping': 'ショッピング',
     'quick.shoppingPrompt': 'ソウルショッピングコースをおすすめしてください。明洞、江南、弘大など。',
 
+    'filter.all': '全て',
+    
     'food.korean': '🍚 韓国料理',
     'food.japanese': '🍣 日本料理',
     'food.chinese': '🥟 中華料理',
@@ -594,6 +600,8 @@ export var translations: Record<Locale, Record<string, string>> = {
     'quick.shopping': '购物路线',
     'quick.shoppingPrompt': '请推荐首尔购物路线。明洞、江南、弘大等购物名所。',
 
+    'filter.all': '全部',
+    
     'food.korean': '🍚 韩餐',
     'food.japanese': '🍣 日餐',
     'food.chinese': '🥟 中餐',
