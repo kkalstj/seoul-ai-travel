@@ -21,32 +21,32 @@ export const PLACE_LABELS = {
   subway: '지하철',
 } as const;
 
-// 음식점 주요 카테고리 (상위 15개만 필터로 노출)
+// 음식점 주요 카테고리
 export const FOOD_TYPES = [
-  { value: '한식', label: '🍚 한식' },
-  { value: '일식', label: '🍣 일식' },
-  { value: '중국식', label: '🥟 중식' },
-  { value: '경양식', label: '🍝 경양식' },
-  { value: '분식', label: '🍜 분식' },
-  { value: '호프/통닭', label: '🍺 호프/통닭' },
-  { value: '통닭(치킨)', label: '🍗 치킨' },
-  { value: '식육(숯불구이)', label: '🥩 숯불구이' },
-  { value: '횟집', label: '🐟 횟집' },
-  { value: '까페', label: '☕ 카페' },
-  { value: '외국음식전문점(인도,태국등)', label: '🌶️ 외국음식' },
-  { value: '패스트푸드', label: '🍔 패스트푸드' },
-  { value: '뷔페식', label: '🍽️ 뷔페' },
-  { value: '김밥(도시락)', label: '🍱 김밥/도시락' },
-  { value: '냉면집', label: '🍲 냉면' },
+  { value: '한식', labelKey: 'food.korean' },
+  { value: '일식', labelKey: 'food.japanese' },
+  { value: '중국식', labelKey: 'food.chinese' },
+  { value: '경양식', labelKey: 'food.western' },
+  { value: '분식', labelKey: 'food.snack' },
+  { value: '호프/통닭', labelKey: 'food.pub' },
+  { value: '통닭(치킨)', labelKey: 'food.chicken' },
+  { value: '식육(숯불구이)', labelKey: 'food.bbq' },
+  { value: '횟집', labelKey: 'food.sashimi' },
+  { value: '까페', labelKey: 'food.cafe' },
+  { value: '외국음식전문점(인도,태국등)', labelKey: 'food.foreign' },
+  { value: '패스트푸드', labelKey: 'food.fastfood' },
+  { value: '뷔페식', labelKey: 'food.buffet' },
+  { value: '김밥(도시락)', labelKey: 'food.kimbap' },
+  { value: '냉면집', labelKey: 'food.naengmyeon' },
 ] as const;
 
 // 숙소 타입
 export const ACCOMMODATION_TYPES = [
-  { value: '관광호텔', label: '🏨 관광호텔' },
-  { value: '일반호텔', label: '🏢 일반호텔' },
-  { value: '숙박업(생활)', label: '🏠 생활숙박' },
-  { value: '숙박업 기타', label: '🛏️ 기타숙박' },
-  { value: '휴양콘도미니엄업', label: '🏖️ 콘도' },
+  { value: '관광호텔', labelKey: 'accom.tourist' },
+  { value: '일반호텔', labelKey: 'accom.general' },
+  { value: '숙박업(생활)', labelKey: 'accom.living' },
+  { value: '숙박업 기타', labelKey: 'accom.other' },
+  { value: '휴양콘도미니엄업', labelKey: 'accom.condo' },
 ] as const;
 
 // 탭 정의
