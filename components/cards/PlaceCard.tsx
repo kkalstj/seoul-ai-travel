@@ -1,5 +1,6 @@
 'use client';
 
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { useState, useEffect } from 'react';
 import { Star, MapPin, UtensilsCrossed, Hotel, Landmark, Heart } from 'lucide-react';
 import { useAuth } from '@/components/auth/AuthProvider';
@@ -55,6 +56,7 @@ export default function PlaceCard({
   onClick,
   onReviewClick,
 }: PlaceCardProps) {
+  var { t } = useLanguage();
   var config = typeConfig[type];
   var Icon = config.icon;
   var { user } = useAuth();
@@ -72,7 +74,7 @@ export default function PlaceCard({
   async function handleFavorite(e: React.MouseEvent) {
     e.stopPropagation();
     if (!user) {
-      alert('로그인이 필요합니다');
+      alert('t('favorite.loginRequired')');
       return;
     }
     if (favLoading) return;
@@ -163,7 +165,7 @@ export default function PlaceCard({
               onClick={handleReview}
               className="text-xs text-blue-600 hover:underline"
             >
-              리뷰 보기
+              {t('explore.reviewView')}
             </button>
           </div>
         </div>
@@ -171,3 +173,4 @@ export default function PlaceCard({
     </div>
   );
 }
+
