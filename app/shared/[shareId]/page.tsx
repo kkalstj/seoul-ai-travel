@@ -55,7 +55,7 @@ export default function SharedCoursePage() {
   if (error || !course) {
     return (
       <div className="text-center py-20">
-        <p className="text-gray-500">{error || '{t('shared.notFound')}'}</p>
+        <p className="text-gray-500">{error || t('shared.notFound')}</p>
       </div>
     );
   }
