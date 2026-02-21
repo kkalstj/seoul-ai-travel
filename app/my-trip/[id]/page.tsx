@@ -260,7 +260,7 @@ export default function CourseDetailPage() {
           className="flex items-center gap-1 px-3 py-1.5 text-sm border rounded-lg hover:bg-gray-50 transition"
         >
           <Share2 size={14} />
-          {copied ? '{t('myTrip.copied')}' : '{t('myTrip.share')}'}
+          {copied ? t('myTrip.copied') : t('myTrip.share')}
         </button>
       </div>
 
@@ -272,7 +272,7 @@ export default function CourseDetailPage() {
             className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 font-medium"
           >
             <MapPin size={16} />
-            {showMap ? '{t('myTrip.hideMap')}' : '{t('myTrip.showMap')} (' + mapPlaces.length + '곳)'}
+            {showMap ? t('myTrip.hideMap') : t('myTrip.showMap') + ' (' + mapPlaces.length + ')'}
           </button>
           {showMap && (
             <div className="mt-3">
@@ -300,7 +300,7 @@ export default function CourseDetailPage() {
                 value={searchQuery}
                 onChange={function(e) { setSearchQuery(e.target.value); }}
                 onKeyDown={function(e) { if (e.key === 'Enter') handleSearch(); }}
-                placeholder="{t('myTrip.searchPlace')}"
+                placeholder={t('myTrip.searchPlace')}
                 className="flex-1 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 autoFocus
               />
