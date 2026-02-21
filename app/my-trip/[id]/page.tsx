@@ -1,5 +1,6 @@
 'use client';
 
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, Plus, Trash2, GripVertical, MapPin, Share2, Search } from 'lucide-react';
@@ -30,6 +31,7 @@ interface Course {
 }
 
 export default function CourseDetailPage() {
+  var { t } = useLanguage();
   var params = useParams();
   var router = useRouter();
   var courseId = params.id as string;
@@ -221,7 +223,7 @@ export default function CourseDetailPage() {
   if (!course) {
     return (
       <div className="text-center py-20">
-        <p className="text-gray-500">코스를 찾을 수 없습니다</p>
+        <p className="text-gray-500">{t('shared.notFound')}</p>
       </div>
     );
   }
@@ -258,7 +260,7 @@ export default function CourseDetailPage() {
           className="flex items-center gap-1 px-3 py-1.5 text-sm border rounded-lg hover:bg-gray-50 transition"
         >
           <Share2 size={14} />
-          {copied ? '복사됨!' : '공유'}
+          {copied ? '{t('myTrip.copied')}' : '{t('myTrip.share')}'}
         </button>
       </div>
 
@@ -270,7 +272,7 @@ export default function CourseDetailPage() {
             className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 font-medium"
           >
             <MapPin size={16} />
-            {showMap ? '지도 숨기기' : '지도에서 보기 (' + mapPlaces.length + '곳)'}
+            {showMap ? '{t('myTrip.hideMap')}' : '{t('myTrip.showMap')} (' + mapPlaces.length + '곳)'}
           </button>
           {showMap && (
             <div className="mt-3">
@@ -287,7 +289,7 @@ export default function CourseDetailPage() {
           className="flex items-center gap-2 w-full bg-white border-2 border-dashed border-gray-300 rounded-xl p-3 text-gray-500 hover:border-blue-400 hover:text-blue-600 transition"
         >
           <Plus size={18} />
-          장소 추가하기
+          {t('myTrip.addPlace')}
         </button>
 
         {showSearch && (
@@ -298,7 +300,7 @@ export default function CourseDetailPage() {
                 value={searchQuery}
                 onChange={function(e) { setSearchQuery(e.target.value); }}
                 onKeyDown={function(e) { if (e.key === 'Enter') handleSearch(); }}
-                placeholder="장소 이름 검색 (예: 광화문, 명동교자)"
+                placeholder="{t('myTrip.searchPlace')}"
                 className="flex-1 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 autoFocus
               />
@@ -345,7 +347,7 @@ export default function CourseDetailPage() {
             )}
 
             {searchResults.length === 0 && searchQuery && !searching && (
-              <p className="text-center text-sm text-gray-400 py-3">검색 결과가 없습니다</p>
+              <p className="text-center text-sm text-gray-400 py-3">{t('explore.noResults')}</p>
             )}
           </div>
         )}
@@ -355,8 +357,8 @@ export default function CourseDetailPage() {
       {course.places.length === 0 ? (
         <div className="text-center py-12">
           <MapPin size={36} className="mx-auto text-gray-300 mb-3" />
-          <p className="text-gray-400">아직 장소가 없어요</p>
-          <p className="text-gray-400 text-sm">위의 버튼으로 장소를 추가해보세요</p>
+          <p className="text-gray-400">{t('myTrip.noPlaces')}</p>
+          <p className="text-gray-400 text-sm">{t('myTrip.noPlacesHint')}</p>
         </div>
       ) : (
         <div className="space-y-2">
