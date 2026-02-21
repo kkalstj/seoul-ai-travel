@@ -1,5 +1,6 @@
 'use client';
 
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { useEffect, useState } from 'react';
 import { X, Star, Send, Trash2 } from 'lucide-react';
 import { useAuth } from '@/components/auth/AuthProvider';
@@ -14,6 +15,7 @@ interface ReviewModalProps {
 }
 
 export default function ReviewModal({ placeId, placeType, placeName, onClose, onReviewAdded }: ReviewModalProps) {
+  var { t } = useLanguage();
   var { user } = useAuth();
   var [reviews, setReviews] = useState<any[]>([]);
   var [loading, setLoading] = useState(true);
@@ -39,11 +41,11 @@ export default function ReviewModal({ placeId, placeType, placeName, onClose, on
 
   async function handleSubmit() {
     if (!user) {
-      alert('로그인이 필요합니다');
+      alert('t('favorite.loginRequired')');
       return;
     }
     if (rating === 0) {
-      alert('별점을 선택해주세요');
+      alert('t('review.selectRating')');
       return;
     }
     if (submitting) return;
@@ -70,7 +72,7 @@ export default function ReviewModal({ placeId, placeType, placeName, onClose, on
   }
 
   async function handleDelete(reviewId: string) {
-    if (!confirm('리뷰를 삭제하시겠습니까?')) return;
+    if (!confirm('t('review.deleteConfirm')')) return;
     try {
       await deleteReview(reviewId);
       await loadReviews();
@@ -122,7 +124,7 @@ export default function ReviewModal({ placeId, placeType, placeName, onClose, on
                   </button>
                 );
               })}
-              {rating > 0 && <span className="text-sm text-gray-500 ml-1">{rating}점</span>}
+              {rating > 0 && <span className="text-sm text-gray-500 ml-1">{rating}{t('review.point')}</span>}
             </div>
             <div className="flex gap-2">
               <input
@@ -130,7 +132,7 @@ export default function ReviewModal({ placeId, placeType, placeName, onClose, on
                 value={content}
                 onChange={function(e) { setContent(e.target.value); }}
                 onKeyDown={function(e) { if (e.key === 'Enter') handleSubmit(); }}
-                placeholder="리뷰를 작성해주세요 (선택)"
+                placeholder="{t('review.write')}"
                 className="flex-1 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <button
@@ -158,8 +160,8 @@ export default function ReviewModal({ placeId, placeType, placeName, onClose, on
           ) : reviews.length === 0 ? (
             <div className="text-center py-8 text-gray-400">
               <Star size={32} className="mx-auto mb-2 text-gray-300" />
-              <p>아직 리뷰가 없어요</p>
-              <p className="text-sm">첫 번째 리뷰를 남겨보세요!</p>
+              <p>{t('review.noReviews')}</p>
+              <p className="text-sm">{t('review.firstReview')}</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -170,10 +172,10 @@ export default function ReviewModal({ placeId, placeType, placeName, onClose, on
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-medium text-gray-900">
-                          {review.profiles?.nickname || '익명'}
+                          {review.profiles?.nickname || '{t('review.anonymous')}'}
                         </span>
                         {isMyReview && (
-                          <span className="text-xs bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded">내 리뷰</span>
+                          <span className="text-xs bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded">{t('review.myReview')}</span>
                         )}
                       </div>
                       <div className="flex items-center gap-2">
