@@ -1,8 +1,10 @@
 'use client';
 
+import { useLanguage } from '@/lib/i18n/LanguageContext';
+
 interface FilterOption {
   value: string;
-  label: string;
+  labelKey: string;
 }
 
 interface CategoryFilterProps {
@@ -12,6 +14,8 @@ interface CategoryFilterProps {
 }
 
 export default function CategoryFilter({ options, selected, onSelect }: CategoryFilterProps) {
+  var { t } = useLanguage();
+
   return (
     <div className="flex flex-wrap gap-2">
       <button
@@ -22,7 +26,7 @@ export default function CategoryFilter({ options, selected, onSelect }: Category
             : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
         }`}
       >
-        전체
+        {t('filter.all')}
       </button>
       {options.map((option) => (
         <button
@@ -34,7 +38,7 @@ export default function CategoryFilter({ options, selected, onSelect }: Category
               : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           }`}
         >
-          {option.label}
+          {t(option.labelKey)}
         </button>
       ))}
     </div>
