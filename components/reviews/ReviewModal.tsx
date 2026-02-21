@@ -45,7 +45,7 @@ export default function ReviewModal({ placeId, placeType, placeName, onClose, on
       return;
     }
     if (rating === 0) {
-      alert('t('review.selectRating')');
+      alert(t('review.selectRating'));
       return;
     }
     if (submitting) return;
@@ -72,7 +72,7 @@ export default function ReviewModal({ placeId, placeType, placeName, onClose, on
   }
 
   async function handleDelete(reviewId: string) {
-    if (!confirm('t('review.deleteConfirm')')) return;
+    if (!confirm(t('review.deleteConfirm'))) return;
     try {
       await deleteReview(reviewId);
       await loadReviews();
