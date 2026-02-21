@@ -74,7 +74,7 @@ export default function PlaceCard({
   async function handleFavorite(e: React.MouseEvent) {
     e.stopPropagation();
     if (!user) {
-      alert('t('favorite.loginRequired')');
+      alert(t('favorite.loginRequired'));
       return;
     }
     if (favLoading) return;
@@ -173,4 +173,5 @@ export default function PlaceCard({
     </div>
   );
 }
+
 
