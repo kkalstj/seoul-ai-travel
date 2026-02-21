@@ -223,7 +223,7 @@ export default function ExplorePage() {
 
       {/* 결과 건수 */}
       <div className="mb-4 text-sm text-gray-500">
-        총 <span className="font-semibold text-gray-900">{totalCount.toLocaleString()}</span> {t('explore.count')}
+        {t('explore.total')} <span className="font-semibold text-gray-900">{totalCount.toLocaleString()}</span> {t('explore.count')}
         {searchKeyword && (
           <span>
             {' · '}검색: <span className="text-blue-600">"{searchKeyword}"</span>
@@ -345,6 +345,7 @@ export default function ExplorePage() {
   );
 
 }
+
 
 
 
