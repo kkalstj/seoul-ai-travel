@@ -53,7 +53,7 @@ export default function MyTripPage() {
   }
 
   async function handleDeleteCourse(courseId: string) {
-    if (!confirm('{t('myTrip.delete') + '?'}')) return;
+    if (!confirm(t('myTrip.delete') + '?')) return;
     try {
       await deleteCourse(courseId);
       setCourses(courses.filter(function(c) { return c.id !== courseId; }));
