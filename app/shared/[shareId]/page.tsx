@@ -26,7 +26,7 @@ export default function SharedCoursePage() {
       var data = await getCourseByShareId(shareId);
       setCourse(data);
     } catch (err) {
-      setError('코스를 찾을 수 없습니다');
+      setError('{t('shared.notFound')}');
     } finally {
       setLoading(false);
     }
