@@ -26,7 +26,7 @@ export default function SharedCoursePage() {
       var data = await getCourseByShareId(shareId);
       setCourse(data);
     } catch (err) {
-      setError('{t('shared.notFound')}');
+      setError(t('shared.notFound'));
     } finally {
       setLoading(false);
     }
