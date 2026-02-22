@@ -119,6 +119,7 @@ export var translations: Record<Locale, Record<string, string>> = {
     'home.restaurantCount': '122,000+ 서울 맛집',
     'home.accommodationCount': '900+ 호텔 · 게스트하우스',
     'home.attractionCount': '700+ 명소 · 볼거리',
+    'home.weatherError': '날씨 정보를 불러올 수 없습니다',
 
     'quick.food': '맛집 투어',
     'quick.foodPrompt': '서울 맛집 투어 1일 코스를 추천해주세요. 다양한 한국 음식을 맛볼 수 있게요!',
@@ -274,6 +275,7 @@ export var translations: Record<Locale, Record<string, string>> = {
     'home.restaurantCount': '122,000+ Restaurants',
     'home.accommodationCount': '900+ Hotels & Guesthouses',
     'home.attractionCount': '700+ Attractions & Landmarks',
+    'home.weatherError': 'Unable to load weather data',
 
     'quick.food': 'Food Tour',
     'quick.foodPrompt': 'Please recommend a 1-day Seoul food tour course. I want to try various Korean foods!',
@@ -428,6 +430,7 @@ export var translations: Record<Locale, Record<string, string>> = {
     'home.restaurantCount': '122,000+ ソウルグルメ',
     'home.accommodationCount': '900+ ホテル・ゲストハウス',
     'home.attractionCount': '700+ 名所・見どころ',
+    'home.weatherError': '天気情報を読み込めません',
 
     'quick.food': 'グルメツアー',
     'quick.foodPrompt': 'ソウルグルメツアー1日コースをおすすめしてください。色々な韓国料理を楽しみたいです！',
@@ -582,6 +585,7 @@ export var translations: Record<Locale, Record<string, string>> = {
     'home.restaurantCount': '122,000+ 首尔美食',
     'home.accommodationCount': '900+ 酒店·民宿',
     'home.attractionCount': '700+ 景点·名胜',
+    'home.weatherError': '无法加载天气信息',
 
     'quick.food': '美食之旅',
     'quick.foodPrompt': '请推荐首尔美食一日游路线。我想品尝各种韩国美食！',
