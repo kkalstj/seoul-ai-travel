@@ -1,6 +1,30 @@
 import { NextResponse } from 'next/server';
 
-function getBaseDateTime() {
+function getUltraBaseDateTime() {
+  var now = new Date();
+  var kst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+  
+  var hour = kst.getUTCHours();
+  var minute = kst.getUTCMinutes();
+  
+  if (minute < 40) {
+    hour = hour - 1;
+    if (hour < 0) {
+      hour = 23;
+      kst.setUTCDate(kst.getUTCDate() - 1);
+    }
+  }
+  
+  var year = kst.getUTCFullYear();
+  var month = String(kst.getUTCMonth() + 1).padStart(2, '0');
+  var day = String(kst.getUTCDate()).padStart(2, '0');
+  var base_date = year + month + day;
+  var base_time = String(hour).padStart(2, '0') + '00';
+  
+  return { base_date, base_time };
+}
+
+function getFcstBaseDateTime() {
   var now = new Date();
   var kst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
   
@@ -36,56 +60,76 @@ export async function GET() {
       return NextResponse.json({ error: 'API key not configured' }, { status: 500 });
     }
 
-    var { base_date, base_time } = getBaseDateTime();
-    
-    var params = new URLSearchParams({
+    var ultra = getUltraBaseDateTime();
+    var fcst = getFcstBaseDateTime();
+
+    var ultraParams = new URLSearchParams({
       serviceKey: apiKey,
       pageNo: '1',
-      numOfRows: '100',
+      numOfRows: '30',
       dataType: 'JSON',
-      base_date: base_date,
-      base_time: base_time,
+      base_date: ultra.base_date,
+      base_time: ultra.base_time,
       nx: '60',
       ny: '127',
     });
 
-    var url = 'https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst?' + params.toString();
-    
-    var response = await fetch(url, { next: { revalidate: 1800 } });
-    var data = await response.json();
+    var fcstParams = new URLSearchParams({
+      serviceKey: apiKey,
+      pageNo: '1',
+      numOfRows: '100',
+      dataType: 'JSON',
+      base_date: fcst.base_date,
+      base_time: fcst.base_time,
+      nx: '60',
+      ny: '127',
+    });
 
-    if (!data.response || !data.response.body || !data.response.body.items) {
-      return NextResponse.json({ error: 'No data from KMA', raw: data }, { status: 500 });
-    }
+    var [ultraRes, fcstRes] = await Promise.all([
+      fetch('https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst?' + ultraParams.toString(), { next: { revalidate: 600 } }),
+      fetch('https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst?' + fcstParams.toString(), { next: { revalidate: 1800 } }),
+    ]);
 
-    var items = data.response.body.items.item;
-    
-    var weather: Record<string, string> = {};
-    for (var i = 0; i < items.length; i++) {
-      var item = items[i];
-      if (!weather[item.category]) {
-        weather[item.category] = item.fcstValue;
+    var ultraData = await ultraRes.json();
+    var fcstData = await fcstRes.json();
+
+    var ultraWeather: Record<string, string> = {};
+    if (ultraData?.response?.body?.items?.item) {
+      var ultraItems = ultraData.response.body.items.item;
+      for (var i = 0; i < ultraItems.length; i++) {
+        ultraWeather[ultraItems[i].category] = ultraItems[i].obsrValue;
       }
     }
 
-    var skyCode = weather['SKY'] || '1';
-    var ptyCode = weather['PTY'] || '0';
+    var fcstWeather: Record<string, string> = {};
+    if (fcstData?.response?.body?.items?.item) {
+      var fcstItems = fcstData.response.body.items.item;
+      for (var j = 0; j < fcstItems.length; j++) {
+        if (!fcstWeather[fcstItems[j].category]) {
+          fcstWeather[fcstItems[j].category] = fcstItems[j].fcstValue;
+        }
+      }
+    }
+
+    var ptyCode = ultraWeather['PTY'] || '0';
     var sky = 'clear';
     if (ptyCode === '1' || ptyCode === '4') sky = 'rain';
     else if (ptyCode === '2') sky = 'sleet';
     else if (ptyCode === '3') sky = 'snow';
-    else if (skyCode === '3') sky = 'cloudy';
-    else if (skyCode === '4') sky = 'overcast';
+    else {
+      var skyCode = fcstWeather['SKY'] || '1';
+      if (skyCode === '3') sky = 'cloudy';
+      else if (skyCode === '4') sky = 'overcast';
+    }
 
     var result = {
-      temperature: weather['TMP'] || weather['T1H'] || '--',
+      temperature: ultraWeather['T1H'] || fcstWeather['TMP'] || '--',
       sky: sky,
-      humidity: weather['REH'] || '--',
-      windSpeed: weather['WSD'] || '--',
-      precipitation: weather['PCP'] || '없음',
-      pop: weather['POP'] || '0',
-      date: base_date,
-      time: base_time,
+      humidity: ultraWeather['REH'] || fcstWeather['REH'] || '--',
+      windSpeed: ultraWeather['WSD'] || fcstWeather['WSD'] || '--',
+      pop: fcstWeather['POP'] || '0',
+      date: ultra.base_date,
+      time: ultra.base_time,
     };
 
     return NextResponse.json(result);
