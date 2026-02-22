@@ -12,7 +12,7 @@ interface Message {
 }
 
 export default function ChatInterface() {
-  var { t } = useLanguage();
+  var { t, locale } = useLanguage();
   var [messages, setMessages] = useState<Message[]>([]);
   var [input, setInput] = useState('');
   var [loading, setLoading] = useState(false);
@@ -46,6 +46,7 @@ export default function ChatInterface() {
         body: JSON.stringify({
           message: text.trim(),
           history: messages,
+          locale: locale,
         }),
       });
 
@@ -179,3 +180,4 @@ export default function ChatInterface() {
     </div>
   );
 }
+
