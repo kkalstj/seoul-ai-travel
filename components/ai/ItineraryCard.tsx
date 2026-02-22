@@ -1,5 +1,6 @@
 'use client';
 
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
@@ -50,6 +51,7 @@ const typeConfig: Record<string, { icon: any; color: string; bg: string }> = {
 };
 
 export default function ItineraryCard({ itinerary }: ItineraryCardProps) {
+  var { t } = useLanguage();
   var [saving, setSaving] = useState(false);
   var [saved, setSaved] = useState(false);
   var router = useRouter();
@@ -102,17 +104,17 @@ export default function ItineraryCard({ itinerary }: ItineraryCardProps) {
             {saved ? (
               <>
                 <Check size={14} />
-                저장됨
+                {t('ai.saved')}
               </>
             ) : saving ? (
               <>
                 <div className="w-3.5 h-3.5 border-2 border-white/50 border-t-white rounded-full animate-spin" />
-                저장 중
+                {t('ai.saving')}
               </>
             ) : (
               <>
                 <Save size={14} />
-                코스 저장
+                {t('ai.saveCourse')}
               </>
             )}
           </button>
@@ -121,12 +123,12 @@ export default function ItineraryCard({ itinerary }: ItineraryCardProps) {
 
       {saved && (
         <div className="bg-green-50 px-5 py-2 flex items-center justify-between">
-          <span className="text-green-700 text-sm">내 여행에 저장되었습니다!</span>
+          <span className="text-green-700 text-sm">{t('ai.savedMessage')}</span>
           <button
             onClick={function() { router.push('/my-trip'); }}
             className="text-green-600 text-sm font-medium hover:underline"
           >
-            보러가기
+            {t('ai.goToMyTrip')}
           </button>
         </div>
       )}
@@ -192,3 +194,4 @@ export default function ItineraryCard({ itinerary }: ItineraryCardProps) {
     </div>
   );
 }
+
