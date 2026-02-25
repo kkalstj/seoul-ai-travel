@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Search, Sparkles, UtensilsCrossed, Hotel, Landmark, Cloud, Sun, CloudRain, CloudSnow, CloudDrizzle, Droplets, Wind, Thermometer } from 'lucide-react';
+import { Search, Sparkles, UtensilsCrossed, Hotel, Landmark, Cloud, Sun, CloudRain, CloudSnow, CloudDrizzle, Droplets, Wind, ExternalLink, Calendar, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 interface WeatherData {
@@ -13,10 +13,24 @@ interface WeatherData {
   pop: string;
 }
 
+interface EventData {
+  title: string;
+  category: string;
+  place: string;
+  startDate: string;
+  endDate: string;
+  isFree: string;
+  link: string;
+  image: string;
+}
+
 export default function Home() {
   var { t, locale } = useLanguage();
   var [weather, setWeather] = useState<WeatherData | null>(null);
   var [weatherLoading, setWeatherLoading] = useState(true);
+  var [events, setEvents] = useState<EventData[]>([]);
+  var [eventsLoading, setEventsLoading] = useState(true);
+  var [eventPage, setEventPage] = useState(0);
 
   useEffect(function() {
     fetch('/api/weather')
@@ -26,16 +40,24 @@ export default function Home() {
       })
       .catch(function(err) { console.error('날씨 로드 실패:', err); })
       .finally(function() { setWeatherLoading(false); });
+
+    fetch('/api/events')
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data.events) setEvents(data.events);
+      })
+      .catch(function(err) { console.error('행사 로드 실패:', err); })
+      .finally(function() { setEventsLoading(false); });
   }, []);
 
   function getSkyIcon(sky: string) {
     switch (sky) {
-      case 'rain': return <CloudRain className="w-10 h-10 text-blue-500" />;
-      case 'snow': return <CloudSnow className="w-10 h-10 text-sky-400" />;
-      case 'sleet': return <CloudDrizzle className="w-10 h-10 text-blue-400" />;
-      case 'cloudy': return <Cloud className="w-10 h-10 text-gray-400" />;
-      case 'overcast': return <Cloud className="w-10 h-10 text-gray-500" />;
-      default: return <Sun className="w-10 h-10 text-yellow-400" />;
+      case 'rain': return <CloudRain className="w-8 h-8 text-blue-500" />;
+      case 'snow': return <CloudSnow className="w-8 h-8 text-sky-400" />;
+      case 'sleet': return <CloudDrizzle className="w-8 h-8 text-blue-400" />;
+      case 'cloudy': return <Cloud className="w-8 h-8 text-gray-400" />;
+      case 'overcast': return <Cloud className="w-8 h-8 text-gray-500" />;
+      default: return <Sun className="w-8 h-8 text-yellow-400" />;
     }
   }
 
@@ -49,13 +71,6 @@ export default function Home() {
       sleet: { ko: '비/눈', en: 'Sleet', ja: 'みぞれ', zh: '雨夹雪' },
     };
     return skyTexts[sky]?.[locale] || skyTexts[sky]?.['en'] || sky;
-  }
-
-  function getTodayDate() {
-    var now = new Date();
-    var options: Intl.DateTimeFormatOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    var localeMap: Record<string, string> = { ko: 'ko-KR', en: 'en-US', ja: 'ja-JP', zh: 'zh-CN' };
-    return now.toLocaleDateString(localeMap[locale] || 'en-US', options);
   }
 
   function getGreeting() {
@@ -74,13 +89,30 @@ export default function Home() {
     var tips: Record<string, Record<string, string>> = {
       rain: { ko: '☂️ 우산을 챙기세요!', en: '☂️ Bring an umbrella!', ja: '☂️ 傘をお忘れなく！', zh: '☂️ 别忘了带伞！' },
       snow: { ko: '⛄ 따뜻하게 입으세요!', en: '⛄ Bundle up warmly!', ja: '⛄ 暖かくしてください！', zh: '⛄ 注意保暖！' },
-      sleet: { ko: '🌧️ 비와 눈이 섞여요', en: '🌧️ Expect mixed rain and snow', ja: '🌧️ みぞれに注意', zh: '🌧️ 注意雨夹雪' },
-      clear: { ko: '😎 여행하기 좋은 날이에요!', en: '😎 Great day for sightseeing!', ja: '😎 旅行日和です！', zh: '😎 适合出游的好天气！' },
-      cloudy: { ko: '🌥️ 가벼운 겉옷을 챙기세요', en: '🌥️ Bring a light jacket', ja: '🌥️ 薄手の上着をお持ちください', zh: '🌥️ 带件薄外套吧' },
-      overcast: { ko: '☁️ 흐리지만 여행은 가능해요', en: '☁️ Overcast but still good to explore', ja: '☁️ 曇りですが観光は可能です', zh: '☁️ 虽然阴天但可以出游' },
+      sleet: { ko: '🌧️ 비와 눈이 섞여요', en: '🌧️ Mixed rain and snow', ja: '🌧️ みぞれに注意', zh: '🌧️ 注意雨夹雪' },
+      clear: { ko: '😎 여행하기 좋은 날!', en: '😎 Great day for travel!', ja: '😎 旅行日和！', zh: '😎 适合出游！' },
+      cloudy: { ko: '🌥️ 겉옷을 챙기세요', en: '🌥️ Bring a light jacket', ja: '🌥️ 上着をお持ちください', zh: '🌥️ 带件外套吧' },
+      overcast: { ko: '☁️ 흐리지만 여행은 OK', en: '☁️ Overcast but good to go', ja: '☁️ 曇りですが観光OK', zh: '☁️ 阴天但可出游' },
     };
     return tips[weather.sky]?.[locale] || tips['clear']?.[locale] || '';
   }
+
+  function formatDate(dateStr: string) {
+    if (!dateStr) return '';
+    return dateStr.replace(/-/g, '.');
+  }
+
+  var eventsPerPage = 3;
+  var totalPages = Math.ceil(events.length / eventsPerPage);
+  var visibleEvents = events.slice(eventPage * eventsPerPage, (eventPage + 1) * eventsPerPage);
+
+  var eventLabels: Record<string, Record<string, string>> = {
+    title: { ko: '서울 행사', en: 'Seoul Events', ja: 'ソウルイベント', zh: '首尔活动' },
+    free: { ko: '무료', en: 'Free', ja: '無料', zh: '免费' },
+    paid: { ko: '유료', en: 'Paid', ja: '有料', zh: '收费' },
+    noEvents: { ko: '현재 행사 정보가 없습니다', en: 'No events available', ja: 'イベント情報がありません', zh: '暂无活动信息' },
+    detail: { ko: '상세보기', en: 'Details', ja: '詳細', zh: '详情' },
+  };
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-12">
@@ -93,41 +125,129 @@ export default function Home() {
         </p>
       </div>
 
-      {/* 날씨 위젯 */}
-      <div className="bg-gradient-to-r from-blue-500 to-sky-400 rounded-2xl p-6 mb-8 text-white shadow-lg">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm text-blue-100">{getTodayDate()}</p>
-            <p className="text-lg font-medium mt-1">{getGreeting()}</p>
-            {weatherLoading ? (
-              <div className="mt-3 flex items-center gap-2">
-                <div className="w-5 h-5 border-2 border-white/50 border-t-white rounded-full animate-spin" />
-                <span className="text-sm text-blue-100">Loading...</span>
+      {/* 행사 + 날씨 위젯 */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        {/* 행사 (왼쪽 2칸) */}
+        <div className="md:col-span-2 bg-white rounded-2xl border p-5 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-blue-600" />
+              <h3 className="font-bold text-gray-900">{eventLabels.title[locale]}</h3>
+            </div>
+            {totalPages > 1 && (
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={function() { setEventPage(Math.max(0, eventPage - 1)); }}
+                  disabled={eventPage === 0}
+                  className="p-1 rounded hover:bg-gray-100 disabled:opacity-30 transition"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <span className="text-xs text-gray-400">{eventPage + 1}/{totalPages}</span>
+                <button
+                  onClick={function() { setEventPage(Math.min(totalPages - 1, eventPage + 1)); }}
+                  disabled={eventPage === totalPages - 1}
+                  className="p-1 rounded hover:bg-gray-100 disabled:opacity-30 transition"
+                >
+                  <ChevronRight size={16} />
+                </button>
               </div>
-            ) : weather ? (
-              <div className="mt-3">
-                <div className="flex items-center gap-3">
-                  {getSkyIcon(weather.sky)}
-                  <div>
-                    <p className="text-3xl font-bold">{weather.temperature}°C</p>
-                    <p className="text-sm text-blue-100">{getSkyText(weather.sky)}</p>
-                  </div>
-                </div>
-                <div className="flex gap-4 mt-3 text-sm text-blue-100">
-                  <span className="flex items-center gap-1"><Droplets size={14} /> {weather.humidity}%</span>
-                  <span className="flex items-center gap-1"><Wind size={14} /> {weather.windSpeed}m/s</span>
-                  <span className="flex items-center gap-1"><CloudRain size={14} /> {weather.pop}%</span>
-                </div>
-                <p className="mt-3 text-sm font-medium">{getWeatherTip()}</p>
-              </div>
-            ) : (
-              <p className="mt-3 text-sm text-blue-100">{t('home.weatherError')}</p>
             )}
           </div>
-          <div className="hidden md:block text-right">
-            <p className="text-6xl">🏙️</p>
-            <p className="text-sm text-blue-100 mt-2">Seoul, Korea</p>
-          </div>
+
+          {eventsLoading ? (
+            <div className="flex justify-center py-8">
+              <div className="w-6 h-6 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+            </div>
+          ) : events.length === 0 ? (
+            <div className="text-center py-8 text-gray-400 text-sm">
+              {eventLabels.noEvents[locale]}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {visibleEvents.map(function(event, i) {
+                return (
+                  
+                    key={i}
+                    href={event.link || '#'}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex gap-3 p-3 rounded-xl hover:bg-gray-50 transition group"
+                  >
+                    {event.image && (
+                      <img
+                        src={event.image}
+                        alt={event.title}
+                        className="w-20 h-20 object-cover rounded-lg shrink-0"
+                        onError={function(e) { (e.target as HTMLImageElement).style.display = 'none'; }}
+                      />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-600">{event.category}</span>
+                        {event.isFree === '무료' && (
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-green-50 text-green-600">{eventLabels.free[locale]}</span>
+                        )}
+                      </div>
+                      <p className="font-medium text-sm text-gray-900 truncate group-hover:text-blue-600 transition">{event.title}</p>
+                      <div className="flex items-center gap-3 mt-1 text-xs text-gray-400">
+                        <span className="flex items-center gap-1">
+                          <Calendar size={10} />
+                          {formatDate(event.startDate)} ~ {formatDate(event.endDate)}
+                        </span>
+                        {event.place && (
+                          <span className="flex items-center gap-1 truncate">
+                            <MapPin size={10} />
+                            {event.place}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <ExternalLink size={14} className="text-gray-300 group-hover:text-blue-500 shrink-0 mt-1 transition" />
+                  </a>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* 날씨 (오른쪽 1칸) */}
+        <div className="bg-gradient-to-b from-blue-500 to-sky-400 rounded-2xl p-5 text-white shadow-lg">
+          <p className="text-sm text-blue-100">{getGreeting()}</p>
+          <p className="text-xs text-blue-200 mt-0.5">Seoul, Korea</p>
+
+          {weatherLoading ? (
+            <div className="flex justify-center py-8">
+              <div className="w-6 h-6 border-2 border-white/50 border-t-white rounded-full animate-spin" />
+            </div>
+          ) : weather ? (
+            <div className="mt-4">
+              <div className="flex items-center gap-3">
+                {getSkyIcon(weather.sky)}
+                <div>
+                  <p className="text-3xl font-bold">{weather.temperature}°C</p>
+                  <p className="text-sm text-blue-100">{getSkyText(weather.sky)}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-2 mt-4 text-center">
+                <div className="bg-white/15 rounded-lg py-2">
+                  <Droplets size={14} className="mx-auto mb-1" />
+                  <p className="text-xs">{weather.humidity}%</p>
+                </div>
+                <div className="bg-white/15 rounded-lg py-2">
+                  <Wind size={14} className="mx-auto mb-1" />
+                  <p className="text-xs">{weather.windSpeed}m/s</p>
+                </div>
+                <div className="bg-white/15 rounded-lg py-2">
+                  <CloudRain size={14} className="mx-auto mb-1" />
+                  <p className="text-xs">{weather.pop}%</p>
+                </div>
+              </div>
+              <p className="mt-3 text-xs font-medium text-center">{getWeatherTip()}</p>
+            </div>
+          ) : (
+            <p className="mt-4 text-sm text-blue-100">{t('home.weatherError')}</p>
+          )}
         </div>
       </div>
 
