@@ -167,7 +167,7 @@ export default function Home() {
             <div className="space-y-3">
               {visibleEvents.map(function(event, i) {
                 return (
-                  
+                  <a
                     key={i}
                     href={event.link || '#'}
                     target="_blank"
