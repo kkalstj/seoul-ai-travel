@@ -41,7 +41,7 @@ export default function Home() {
       .catch(function(err) { console.error('날씨 로드 실패:', err); })
       .finally(function() { setWeatherLoading(false); });
 
-    fetch('/api/events')
+    fetch('/api/events?locale=' + locale)
       .then(function(res) { return res.json(); })
       .then(function(data) {
         if (data.events) setEvents(data.events);
