@@ -121,21 +121,54 @@ export default function Home() {
     <div className="max-w-5xl mx-auto px-4 py-12">
       <div className="text-center mb-8">
         <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-          <svg className="inline-block w-10 h-10 md:w-12 md:h-12 -mt-2" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="32" cy="58" rx="10" ry="3" fill="#E5E7EB"/>
-            <rect x="30" y="20" width="4" height="38" rx="1" fill="#3B82F6"/>
-            <rect x="28" y="28" width="8" height="12" rx="2" fill="#60A5FA"/>
-            <rect x="26" y="36" width="12" height="8" rx="2" fill="#93C5FD"/>
-            <rect x="24" y="42" width="16" height="6" rx="2" fill="#BFDBFE"/>
-            <rect x="22" y="46" width="20" height="10" rx="3" fill="#3B82F6"/>
-            <rect x="31" y="8" width="2" height="14" fill="#60A5FA"/>
-            <circle cx="32" cy="7" r="2" fill="#F59E0B"/>
-            <rect x="26" y="48" width="3" height="3" rx="0.5" fill="#FDE68A"/>
-            <rect x="30.5" y="48" width="3" height="3" rx="0.5" fill="#FDE68A"/>
-            <rect x="35" y="48" width="3" height="3" rx="0.5" fill="#FDE68A"/>
-            <rect x="26" y="52" width="3" height="3" rx="0.5" fill="#FDE68A"/>
-            <rect x="30.5" y="52" width="3" height="3" rx="0.5" fill="#FDE68A"/>
-            <rect x="35" y="52" width="3" height="3" rx="0.5" fill="#FDE68A"/>
+          <svg className="inline-block w-14 h-14 md:w-16 md:h-16 -mt-2" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+            {/* 원형 배경 */}
+            <circle cx="60" cy="60" r="56" stroke="#3B82F6" strokeWidth="2.5" fill="white"/>
+            
+            {/* 산 배경 */}
+            <path d="M20 85 Q40 55 60 70 Q80 55 100 85" fill="#DBEAFE" opacity="0.5"/>
+            
+            {/* 경복궁 지붕 */}
+            <path d="M25 88 L35 78 L45 88 Z" fill="#1E40AF"/>
+            <path d="M28 88 L35 82 L42 88 Z" fill="#3B82F6"/>
+            <rect x="30" y="88" width="10" height="6" fill="#60A5FA"/>
+            <rect x="31" y="89" width="3" height="4" rx="0.5" fill="#DBEAFE"/>
+            <rect x="36" y="89" width="3" height="4" rx="0.5" fill="#DBEAFE"/>
+            
+            {/* N서울타워 기둥 */}
+            <rect x="58" y="42" width="4" height="46" fill="#6B7280"/>
+            <rect x="57" y="40" width="6" height="4" rx="1" fill="#4B5563"/>
+            
+            {/* N서울타워 전망대 */}
+            <ellipse cx="60" cy="38" rx="10" ry="4" fill="#3B82F6"/>
+            <rect x="51" y="34" width="18" height="4" rx="2" fill="#2563EB"/>
+            <ellipse cx="60" cy="34" rx="9" ry="3" fill="#3B82F6"/>
+            
+            {/* 전망대 창문 */}
+            <rect x="53" y="34.5" width="2.5" height="2.5" rx="0.5" fill="#FDE68A"/>
+            <rect x="57" y="34.5" width="2.5" height="2.5" rx="0.5" fill="#FDE68A"/>
+            <rect x="61" y="34.5" width="2.5" height="2.5" rx="0.5" fill="#FDE68A"/>
+            <rect x="65" y="34.5" width="2.5" height="2.5" rx="0.5" fill="#FDE68A"/>
+            
+            {/* 안테나 */}
+            <rect x="59.5" y="22" width="1" height="12" fill="#9CA3AF"/>
+            <circle cx="60" cy="21" r="1.5" fill="#EF4444"/>
+            
+            {/* N 글자 */}
+            <text x="60" y="45" textAnchor="middle" fill="white" fontSize="5" fontWeight="bold">N</text>
+            
+            {/* 오른쪽 한옥 */}
+            <path d="M75 88 L85 78 L95 88 Z" fill="#1E40AF"/>
+            <path d="M78 88 L85 82 L92 88 Z" fill="#3B82F6"/>
+            <rect x="80" y="88" width="10" height="6" fill="#60A5FA"/>
+            <rect x="81" y="89" width="3" height="4" rx="0.5" fill="#DBEAFE"/>
+            <rect x="86" y="89" width="3" height="4" rx="0.5" fill="#DBEAFE"/>
+            
+            {/* 바닥선 */}
+            <line x1="20" y1="94" x2="100" y2="94" stroke="#BFDBFE" strokeWidth="1.5"/>
+            
+            {/* SEOUL 텍스트 */}
+            <text x="60" y="105" textAnchor="middle" fill="#3B82F6" fontSize="10" fontWeight="bold" fontFamily="Arial, sans-serif">SEOUL</text>
           </svg>
           {' '}{t('home.hero')}
         </h1>
