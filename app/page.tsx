@@ -121,7 +121,23 @@ export default function Home() {
     <div className="max-w-5xl mx-auto px-4 py-12">
       <div className="text-center mb-8">
         <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-          🗼 {t('home.hero')}
+          <svg className="inline-block w-10 h-10 md:w-12 md:h-12 -mt-2" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="32" cy="58" rx="10" ry="3" fill="#E5E7EB"/>
+            <rect x="30" y="20" width="4" height="38" rx="1" fill="#3B82F6"/>
+            <rect x="28" y="28" width="8" height="12" rx="2" fill="#60A5FA"/>
+            <rect x="26" y="36" width="12" height="8" rx="2" fill="#93C5FD"/>
+            <rect x="24" y="42" width="16" height="6" rx="2" fill="#BFDBFE"/>
+            <rect x="22" y="46" width="20" height="10" rx="3" fill="#3B82F6"/>
+            <rect x="31" y="8" width="2" height="14" fill="#60A5FA"/>
+            <circle cx="32" cy="7" r="2" fill="#F59E0B"/>
+            <rect x="26" y="48" width="3" height="3" rx="0.5" fill="#FDE68A"/>
+            <rect x="30.5" y="48" width="3" height="3" rx="0.5" fill="#FDE68A"/>
+            <rect x="35" y="48" width="3" height="3" rx="0.5" fill="#FDE68A"/>
+            <rect x="26" y="52" width="3" height="3" rx="0.5" fill="#FDE68A"/>
+            <rect x="30.5" y="52" width="3" height="3" rx="0.5" fill="#FDE68A"/>
+            <rect x="35" y="52" width="3" height="3" rx="0.5" fill="#FDE68A"/>
+          </svg>
+          {' '}{t('home.hero')}
         </h1>
         <p className="text-lg text-gray-500 mb-6">
           {t('home.subtitle')}
