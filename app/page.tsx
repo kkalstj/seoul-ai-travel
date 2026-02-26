@@ -330,19 +330,23 @@ export default function Home() {
               <p className="mt-3 text-xs font-medium text-center">{getWeatherTip()}</p>
               
               {weather.forecast && weather.forecast.length > 0 && (
-                <div className="mt-4 pt-3 border-t border-white/20">
-                  <div className="grid grid-cols-3 gap-2">
-                    {weather.forecast.map(function(day, i) {
-                      return (
-                        <div key={i} className="text-center">
-                          <p className="text-xs text-blue-200">{getDayLabel(day.date)}</p>
-                          <p className="text-base my-1">{getSmallSkyIcon(day.sky)}</p>
-                          <p className="text-xs font-medium">{day.tempMax}°</p>
-                          <p className="text-xs text-blue-200">{day.tempMin}°</p>
+                <div className="mt-4 pt-3 border-t border-white/20 space-y-2">
+                  {weather.forecast.map(function(day, i) {
+                    return (
+                      <div key={i} className="flex items-center justify-between bg-white/10 rounded-lg px-3 py-1.5">
+                        <span className="text-xs font-medium w-8">{getDayLabel(day.date)}</span>
+                        <span className="text-sm">{getSmallSkyIcon(day.sky)}</span>
+                        <span className="text-xs text-blue-200">{day.pop}%</span>
+                        <div className="flex items-center gap-2 text-xs">
+                          <span className="text-blue-200">{day.tempMin}°</span>
+                          <div className="w-12 h-1.5 bg-white/20 rounded-full overflow-hidden">
+                            <div className="h-full bg-white/60 rounded-full" style={{width: Math.min(100, Math.max(20, (day.tempMax + 10) * 3)) + '%'}} />
+                          </div>
+                          <span className="font-medium">{day.tempMax}°</span>
                         </div>
-                      );
-                    })}
-                  </div>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
