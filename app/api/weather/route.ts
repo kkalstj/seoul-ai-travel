@@ -77,7 +77,7 @@ export async function GET() {
     var fcstParams = new URLSearchParams({
       serviceKey: apiKey,
       pageNo: '1',
-      numOfRows: '100',
+      numOfRows: '800',
       dataType: 'JSON',
       base_date: fcst.base_date,
       base_time: fcst.base_time,
@@ -102,11 +102,37 @@ export async function GET() {
     }
 
     var fcstWeather: Record<string, string> = {};
+    var dailyData: Record<string, { tmx: string; tmn: string; sky: string; pop: string }> = {};
+
     if (fcstData?.response?.body?.items?.item) {
       var fcstItems = fcstData.response.body.items.item;
+      
       for (var j = 0; j < fcstItems.length; j++) {
-        if (!fcstWeather[fcstItems[j].category]) {
-          fcstWeather[fcstItems[j].category] = fcstItems[j].fcstValue;
+        var item = fcstItems[j];
+        if (!fcstWeather[item.category]) {
+          fcstWeather[item.category] = item.fcstValue;
+        }
+
+        var date = item.fcstDate;
+        if (!dailyData[date]) {
+          dailyData[date] = { tmx: '', tmn: '', sky: '1', pop: '0' };
+        }
+
+        if (item.category === 'TMX') {
+          dailyData[date].tmx = item.fcstValue;
+        }
+        if (item.category === 'TMN') {
+          dailyData[date].tmn = item.fcstValue;
+        }
+        if (item.category === 'SKY' && item.fcstTime === '1200') {
+          dailyData[date].sky = item.fcstValue;
+        }
+        if (item.category === 'POP') {
+          var currentPop = parseInt(dailyData[date].pop) || 0;
+          var newPop = parseInt(item.fcstValue) || 0;
+          if (newPop > currentPop) {
+            dailyData[date].pop = item.fcstValue;
+          }
         }
       }
     }
@@ -122,6 +148,34 @@ export async function GET() {
       else if (skyCode === '4') sky = 'overcast';
     }
 
+    var now = new Date();
+    var kstNow = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+    var todayStr = kstNow.getUTCFullYear() + String(kstNow.getUTCMonth() + 1).padStart(2, '0') + String(kstNow.getUTCDate()).padStart(2, '0');
+
+    var forecast: any[] = [];
+    var dates = Object.keys(dailyData).sort();
+    for (var k = 0; k < dates.length; k++) {
+      if (dates[k] === todayStr) continue;
+      var d = dailyData[dates[k]];
+      if (!d.tmx && !d.tmn) continue;
+
+      var daySky = 'clear';
+      if (d.sky === '3') daySky = 'cloudy';
+      else if (d.sky === '4') daySky = 'overcast';
+
+      var dateFormatted = dates[k].substring(0, 4) + '-' + dates[k].substring(4, 6) + '-' + dates[k].substring(6, 8);
+
+      forecast.push({
+        date: dateFormatted,
+        tempMax: Math.round(parseFloat(d.tmx) || 0),
+        tempMin: Math.round(parseFloat(d.tmn) || 0),
+        sky: daySky,
+        pop: parseInt(d.pop) || 0,
+      });
+
+      if (forecast.length >= 3) break;
+    }
+
     var result = {
       temperature: ultraWeather['T1H'] || fcstWeather['TMP'] || '--',
       sky: sky,
@@ -130,6 +184,7 @@ export async function GET() {
       pop: fcstWeather['POP'] || '0',
       date: ultra.base_date,
       time: ultra.base_time,
+      forecast: forecast,
     };
 
     return NextResponse.json(result);
