@@ -5,12 +5,21 @@ import Link from 'next/link';
 import { Search, Sparkles, UtensilsCrossed, Hotel, Landmark, Cloud, Sun, CloudRain, CloudSnow, CloudDrizzle, Droplets, Wind, ExternalLink, Calendar, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 
+interface ForecastDay {
+  date: string;
+  tempMax: number;
+  tempMin: number;
+  sky: string;
+  pop: number;
+}
+
 interface WeatherData {
   temperature: string;
   sky: string;
   humidity: string;
   windSpeed: string;
   pop: string;
+  forecast?: ForecastDay[];
 }
 
 interface EventData {
@@ -100,6 +109,29 @@ export default function Home() {
     return tips[weather.sky]?.[locale] || tips['clear']?.[locale] || '';
   }
 
+  function getDayLabel(dateStr: string) {
+    var date = new Date(dateStr);
+    var days: Record<string, string[]> = {
+      ko: ['일', '월', '화', '수', '목', '금', '토'],
+      en: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+      ja: ['日', '月', '火', '水', '木', '金', '土'],
+      zh: ['日', '一', '二', '三', '四', '五', '六'],
+    };
+    var dayNames = days[locale] || days['en'];
+    return dayNames[date.getDay()];
+  }
+
+  function getSmallSkyIcon(sky: string) {
+    switch (sky) {
+      case 'rain': return '🌧️';
+      case 'snow': return '❄️';
+      case 'sleet': return '🌨️';
+      case 'cloudy': return '⛅';
+      case 'overcast': return '☁️';
+      default: return '☀️';
+    }
+  }
+  
   function formatDate(dateStr: string) {
     if (!dateStr) return '';
     return dateStr.replace(/-/g, '.');
@@ -296,6 +328,23 @@ export default function Home() {
                 </div>
               </div>
               <p className="mt-3 text-xs font-medium text-center">{getWeatherTip()}</p>
+              
+              {weather.forecast && weather.forecast.length > 0 && (
+                <div className="mt-4 pt-3 border-t border-white/20">
+                  <div className="grid grid-cols-3 gap-2">
+                    {weather.forecast.map(function(day, i) {
+                      return (
+                        <div key={i} className="text-center">
+                          <p className="text-xs text-blue-200">{getDayLabel(day.date)}</p>
+                          <p className="text-base my-1">{getSmallSkyIcon(day.sky)}</p>
+                          <p className="text-xs font-medium">{day.tempMax}°</p>
+                          <p className="text-xs text-blue-200">{day.tempMin}°</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <p className="mt-4 text-sm text-blue-100">{t('home.weatherError')}</p>
