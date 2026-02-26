@@ -142,7 +142,7 @@ export default function Home() {
   var visibleEvents = events.slice(eventPage * eventsPerPage, (eventPage + 1) * eventsPerPage);
 
   var eventLabels: Record<string, Record<string, string>> = {
-    title: { ko: '서울 행사', en: 'Seoul Events', ja: 'ソウルイベント', zh: '首尔活动' },
+    title: { ko: '행사', en: 'Seoul Events', ja: 'ソウルイベント', zh: '首尔活动' },
     free: { ko: '무료', en: 'Free', ja: '無料', zh: '免费' },
     paid: { ko: '유료', en: 'Paid', ja: '有料', zh: '收费' },
     noEvents: { ko: '현재 행사 정보가 없습니다', en: 'No events available', ja: 'イベント情報がありません', zh: '暂无活动信息' },
