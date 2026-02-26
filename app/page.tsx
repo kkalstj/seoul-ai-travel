@@ -209,6 +209,24 @@ export default function Home() {
         </p>
       </div>
 
+      {/* 버튼 */}
+      <div className="flex flex-col sm:flex-row gap-3 justify-center mb-8">
+        <Link
+          href="/explore"
+          className="inline-flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 rounded-xl font-medium text-gray-700 hover:border-blue-300 hover:shadow-md transition-all"
+        >
+          <Search className="w-5 h-5" />
+          {t('home.startExplore')}
+        </Link>
+        <Link
+          href="/ai-recommend"
+          className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 shadow-md shadow-blue-200 transition-all"
+        >
+          <Sparkles className="w-5 h-5" />
+          {t('home.aiRecommend')}
+        </Link>
+      </div>
+      
       {/* 행사 + 날씨 위젯 */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         {/* 행사 (왼쪽 2칸) */}
@@ -356,23 +374,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* 버튼 */}
-      <div className="flex flex-col sm:flex-row gap-3 justify-center mb-12">
-        <Link
-          href="/explore"
-          className="inline-flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 rounded-xl font-medium text-gray-700 hover:border-blue-300 hover:shadow-md transition-all"
-        >
-          <Search className="w-5 h-5" />
-          {t('home.startExplore')}
-        </Link>
-        <Link
-          href="/ai-recommend"
-          className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 shadow-md shadow-blue-200 transition-all"
-        >
-          <Sparkles className="w-5 h-5" />
-          {t('home.aiRecommend')}
-        </Link>
-      </div>
 
       {/* 카테고리 카드 */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
