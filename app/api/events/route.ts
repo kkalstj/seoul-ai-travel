@@ -8,7 +8,7 @@ var translationCache: Record<string, any[]> = {};
 async function translateEvents(events: any[], locale: string) {
   if (locale === 'ko') return events;
 
-  var cacheKey = locale + '_' + events.map(function(e) { return e.title; }).join('|');
+  var cacheKey = locale + '_' + events.map(fFunction(e) { return e.title; }).join('|');
   if (translationCache[cacheKey]) return translationCache[cacheKey];
 
   try {
@@ -24,7 +24,7 @@ async function translateEvents(events: any[], locale: string) {
       return i + '|' + e.title + '|' + e.category + '|' + e.place;
     }).join('\n');
 
-    var model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    var model = genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' });
 
     var prompt = 'Translate the following Korean event data to ' + targetLang + '. Each line has format: index|title|category|place. Return ONLY the translated lines in the exact same format. Do not add any explanation.\n\n' + eventsText;
 
