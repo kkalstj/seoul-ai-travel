@@ -8,7 +8,7 @@ var translationCache: Record<string, any[]> = {};
 async function translateEvents(events: any[], locale: string) {
   if (locale === 'ko') return events;
 
-  var cacheKey = locale + '_' + events.map(fFunction(e) { return e.title; }).join('|');
+  var cacheKey = locale + '_' + events.map(function(e) { return e.title; }).join('|');
   if (translationCache[cacheKey]) return translationCache[cacheKey];
 
   try {
