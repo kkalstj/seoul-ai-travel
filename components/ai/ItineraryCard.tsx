@@ -1,19 +1,11 @@
 'use client';
 
+import { useEffect, useRef, useState } from 'react';
+import { MapPin } from 'lucide-react';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import {
-  Clock,
-  UtensilsCrossed,
-  Hotel,
-  Landmark,
-  Lightbulb,
-  Calendar,
-  Save,
-  Check,
-} from 'lucide-react';
-import { saveAICourse } from '@/lib/supabase/courses';
+import { supabase } from '@/lib/supabase/client';
 
 interface Place {
   name: string;
@@ -21,11 +13,6 @@ interface Place {
   time: string;
   duration: string;
   tip: string;
-  address?: string;
-  latitude?: number;
-  longitude?: number;
-  rating?: number;
-  category?: string;
 }
 
 interface Day {
@@ -40,161 +27,163 @@ interface Itinerary {
   days: Day[];
 }
 
-interface ItineraryCardProps {
+interface ItineraryMapProps {
   itinerary: Itinerary;
 }
 
-const typeConfig: Record<string, { icon: any; color: string; bg: string }> = {
-  restaurant: { icon: UtensilsCrossed, color: 'text-orange-600', bg: 'bg-orange-50 border-orange-200' },
-  accommodation: { icon: Hotel, color: 'text-teal-600', bg: 'bg-teal-50 border-teal-200' },
-  attraction: { icon: Landmark, color: 'text-purple-600', bg: 'bg-purple-50 border-purple-200' },
+var typeColors: Record<string, string> = {
+  restaurant: '#F97316',
+  accommodation: '#14B8A6',
+  attraction: '#8B5CF6',
 };
 
-export default function ItineraryCard({ itinerary }: ItineraryCardProps) {
+var typeEmoji: Record<string, string> = {
+  restaurant: '🍽️',
+  accommodation: '🏨',
+  attraction: '🏛️',
+};
+
+export default function ItineraryMap({ itinerary }: ItineraryMapProps) {
   var { t } = useLanguage();
-  var [saving, setSaving] = useState(false);
-  var [saved, setSaved] = useState(false);
-  var router = useRouter();
+  var mapRef = useRef<HTMLDivElement>(null);
+  var mapInstanceRef = useRef<L.Map | null>(null);
+  var [loading, setLoading] = useState(true);
 
-  async function handleSave() {
-    if (saving || saved) return;
-    setSaving(true);
+  useEffect(function() {
+    if (!mapRef.current || mapInstanceRef.current) return;
 
-    try {
-      var places: any[] = [];
-      itinerary.days.forEach(function(day) {
-        day.places.forEach(function(place) {
-          places.push({
-            place_type: place.type || 'attraction',
-            place_name: place.name,
-            place_address: place.address || null,
-            place_latitude: place.latitude || null,
-            place_longitude: place.longitude || null,
-            place_rating: place.rating || null,
-            place_category: place.category || null,
-            day_number: day.day,
-            memo: place.tip || null,
-          });
+    var map = L.map(mapRef.current, {
+      center: [37.5665, 126.978],
+      zoom: 13,
+      zoomControl: true,
+    });
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap',
+    }).addTo(map);
+
+    mapInstanceRef.current = map;
+
+    var allPlaces: { name: string; type: string; order: number }[] = [];
+    itinerary.days.forEach(function(day) {
+      day.places.forEach(function(place, idx) {
+        allPlaces.push({
+          name: place.name.replace(/\s*\(.*?\)\s*/g, '').trim(),
+          type: place.type || 'attraction',
+          order: allPlaces.length + 1,
         });
       });
+    });
 
-      await saveAICourse(itinerary.title || 'AI 추천 코스', places);
-      setSaved(true);
-    } catch (err) {
-      console.error('코스 저장 실패:', err);
-      alert('저장에 실패했습니다. 다시 시도해주세요.');
-    } finally {
-      setSaving(false);
+    async function findAndPlotPlaces() {
+      var coords: L.LatLng[] = [];
+
+      for (var i = 0; i < allPlaces.length; i++) {
+        var place = allPlaces[i];
+        var searchName = place.name;
+
+        var found = false;
+        var tables = ['restaurants', 'accommodations', 'attractions'];
+        
+        for (var t = 0; t < tables.length; t++) {
+          var { data } = await supabase
+            .from(tables[t])
+            .select('name, latitude, longitude')
+            .ilike('name', '%' + searchName + '%')
+            .limit(1);
+
+          if (data && data.length > 0 && data[0].latitude && data[0].longitude) {
+            var lat = data[0].latitude;
+            var lng = data[0].longitude;
+            var color = typeColors[place.type] || '#8B5CF6';
+            var emoji = typeEmoji[place.type] || '📍';
+
+            var icon = L.divIcon({
+              className: 'custom-marker',
+              html: '<div style="background:' + color + '; color:white; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:12px; border:2px solid white; box-shadow:0 2px 4px rgba(0,0,0,0.3);">' + place.order + '</div>',
+              iconSize: [28, 28],
+              iconAnchor: [14, 14],
+            });
+
+            L.marker([lat, lng], { icon: icon })
+              .addTo(map)
+              .bindPopup('<b>' + emoji + ' ' + place.order + '. ' + place.name + '</b>');
+
+            coords.push(L.latLng(lat, lng));
+            found = true;
+            break;
+          }
+        }
+
+        if (!found) {
+          try {
+            var res = await fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(searchName + ' 서울') + '&limit=1');
+            var results = await res.json();
+            if (results && results.length > 0) {
+              var lat2 = parseFloat(results[0].lat);
+              var lng2 = parseFloat(results[0].lon);
+              var color2 = typeColors[place.type] || '#8B5CF6';
+              var emoji2 = typeEmoji[place.type] || '📍';
+
+              var icon2 = L.divIcon({
+                className: 'custom-marker',
+                html: '<div style="background:' + color2 + '; color:white; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:12px; border:2px solid white; box-shadow:0 2px 4px rgba(0,0,0,0.3);">' + place.order + '</div>',
+                iconSize: [28, 28],
+                iconAnchor: [14, 14],
+              });
+
+              L.marker([lat2, lng2], { icon: icon2 })
+                .addTo(map)
+                .bindPopup('<b>' + emoji2 + ' ' + place.order + '. ' + place.name + '</b>');
+
+              coords.push(L.latLng(lat2, lng2));
+            }
+          } catch (err) {
+            console.error('Geocoding error:', err);
+          }
+        }
+      }
+
+      if (coords.length > 1) {
+        L.polyline(coords, {
+          color: '#3B82F6',
+          weight: 3,
+          opacity: 0.7,
+          dashArray: '8, 8',
+        }).addTo(map);
+
+        var bounds = L.latLngBounds(coords);
+        map.fitBounds(bounds, { padding: [30, 30] });
+      } else if (coords.length === 1) {
+        map.setView(coords[0], 15);
+      }
+
+      setLoading(false);
     }
-  }
+
+    findAndPlotPlaces();
+
+    return function() {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, [itinerary]);
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-5 py-4">
-        <div className="flex items-start justify-between">
-          <div className="flex-1 min-w-0 mr-3">
-            <h3 className="text-white font-bold text-lg">{itinerary.title}</h3>
-            <p className="text-blue-100 text-sm mt-1">{itinerary.description}</p>
-          </div>
-          <button
-            onClick={handleSave}
-            disabled={saving || saved}
-            className={'flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium transition whitespace-nowrap ' + (saved ? 'bg-green-500 text-white' : 'bg-white/20 text-white hover:bg-white/30')}
-          >
-            {saved ? (
-              <>
-                <Check size={14} />
-                {t('ai.saved')}
-              </>
-            ) : saving ? (
-              <>
-                <div className="w-3.5 h-3.5 border-2 border-white/50 border-t-white rounded-full animate-spin" />
-                {t('ai.saving')}
-              </>
-            ) : (
-              <>
-                <Save size={14} />
-                {t('ai.saveCourse')}
-              </>
-            )}
-          </button>
-        </div>
-      </div>
-
-      {saved && (
-        <div className="bg-green-50 px-5 py-2 flex items-center justify-between">
-          <span className="text-green-700 text-sm">{t('ai.savedMessage')}</span>
-          <button
-            onClick={function() { router.push('/my-trip'); }}
-            className="text-green-600 text-sm font-medium hover:underline"
-          >
-            {t('ai.goToMyTrip')}
-          </button>
-        </div>
-      )}
-
-      <div className="p-4 space-y-4">
-        {itinerary.days.map(function(day) {
-          return (
-            <div key={day.day}>
-              <div className="flex items-center gap-2 mb-3">
-                <div className="flex items-center gap-1.5 px-3 py-1 bg-blue-50 rounded-full">
-                  <Calendar className="w-3.5 h-3.5 text-blue-600" />
-                  <span className="text-sm font-semibold text-blue-700">
-                    Day {day.day}
-                  </span>
-                </div>
-                <span className="text-sm text-gray-500">{day.theme}</span>
-              </div>
-
-              <div className="space-y-0">
-                {day.places.map(function(place, idx) {
-                  var config = typeConfig[place.type] || typeConfig.attraction;
-                  var Icon = config.icon;
-
-                  return (
-                    <div key={idx} className="flex gap-3">
-                      <div className="flex flex-col items-center">
-                        <div className={'w-8 h-8 rounded-full border-2 ' + config.bg + ' flex items-center justify-center'}>
-                          <Icon className={'w-3.5 h-3.5 ' + config.color} />
-                        </div>
-                        {idx < day.places.length - 1 && (
-                          <div className="w-0.5 h-full bg-gray-200 my-1" />
-                        )}
-                      </div>
-
-                      <div className="pb-4 flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold text-gray-900 text-sm">
-                            {place.name}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
-                          <span className="flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            {place.time}
-                          </span>
-                          <span>{place.duration}</span>
-                        </div>
-                        {place.tip && (
-                          <div className="flex items-start gap-1.5 mt-1.5 text-xs text-amber-700 bg-amber-50 px-2.5 py-1.5 rounded-lg">
-                            <Lightbulb className="w-3 h-3 mt-0.5 shrink-0" />
-                            <span>{place.tip}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+      <div className="relative">
+        <div ref={mapRef} style={{ height: '280px', width: '100%' }} />
+        {loading && (
+          <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <div className="w-5 h-5 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+              {t('ai.mapLoading')}
             </div>
-          );
-        })}
+          </div>
+        )}
       </div>
     </div>
   );
 }
-
-
-
-
