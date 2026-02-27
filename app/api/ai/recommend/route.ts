@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
     const lang = langConfig[locale] || langConfig['ko'];
     const placesContext = await getPlacesContext();
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' });
 
     const systemPrompt = `당신은 친절하고 전문적인 서울 여행 AI 가이드 "${lang.name}"입니다.
 
@@ -203,4 +203,5 @@ ${placesContext}
     );
   }
 }
+
 
