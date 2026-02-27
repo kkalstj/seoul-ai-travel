@@ -163,6 +163,8 @@ export var translations: Record<Locale, Record<string, string>> = {
     
     'ai.loading': 'AI가 여행 계획을 수립하고 있어요! 잠시만 기다려주세요 ✈️',
     
+    'ai.mapLoading': '지도에 경로를 표시하는 중...',
+    
     // 언어
     'lang.ko': '한국어',
     'lang.en': 'English',
@@ -321,6 +323,8 @@ export var translations: Record<Locale, Record<string, string>> = {
     
     'ai.loading': 'AI is planning your trip! Please wait a moment ✈️',
   
+    'ai.mapLoading': 'Loading route on map...',
+    
     'lang.ko': '한국어',
     'lang.en': 'English',
     'lang.ja': '日本語',
@@ -477,7 +481,9 @@ export var translations: Record<Locale, Record<string, string>> = {
     'accom.condo': '🏖️ コンドミニアム',
     
     'ai.loading': 'AIが旅行プランを作成中です！少々お待ちください ✈️',
-      
+
+    'ai.mapLoading': 'マップにルートを表示中...',
+    
     'lang.ko': '한국어',
     'lang.en': 'English',
     'lang.ja': '日本語',
@@ -634,6 +640,8 @@ export var translations: Record<Locale, Record<string, string>> = {
     'accom.condo': '🏖️ 度假公寓',
     
     'ai.loading': 'AI正在为您规划旅行！请稍等 ✈️',
+
+    'ai.mapLoading': '正在地图上显示路线...',
     
     'lang.ko': '한국어',
     'lang.en': 'English',
