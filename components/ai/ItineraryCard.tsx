@@ -92,7 +92,7 @@ export default function ItineraryCard({ itinerary }: ItineraryCardProps) {
     <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-5 py-4">
         <div className="flex items-center justify-between">
-          <div>
+          <div className="flex-1 min-w-0 mr-3">
             <h3 className="text-white font-bold text-lg">{itinerary.title}</h3>
             <p className="text-blue-100 text-sm mt-1">{itinerary.description}</p>
           </div>
@@ -194,5 +194,6 @@ export default function ItineraryCard({ itinerary }: ItineraryCardProps) {
     </div>
   );
 }
+
 
 
