@@ -63,6 +63,7 @@ export default function ItineraryMap({ itinerary }: ItineraryMapProps) {
   var mapInstanceRef = useRef<any>(null);
   var markersRef = useRef<any[]>([]);
   var directionsRendererRef = useRef<any>(null);
+  var renderersRef = useRef<any[]>([]);
   var coordsRef = useRef<{ lat: number; lng: number }[]>([]);
   var [loading, setLoading] = useState(true);
   var [travelMode, setTravelMode] = useState<string>('TRANSIT');
@@ -194,6 +195,8 @@ export default function ItineraryMap({ itinerary }: ItineraryMapProps) {
     return function() { cancelled = true; };
   }, [itinerary]);
 
+  var renderersRef = useRef<any[]>([]);
+
   useEffect(function() {
     if (!mapReady || coordsRef.current.length < 2 || !mapInstanceRef.current) return;
 
@@ -201,47 +204,84 @@ export default function ItineraryMap({ itinerary }: ItineraryMapProps) {
     var map = mapInstanceRef.current;
     var coords = coordsRef.current;
 
+    renderersRef.current.forEach(function(r) { r.setMap(null); });
+    renderersRef.current = [];
+
     if (directionsRendererRef.current) {
       directionsRendererRef.current.setMap(null);
+      directionsRendererRef.current = null;
     }
 
-    var renderer = new google.maps.DirectionsRenderer({
-      map: map,
-      suppressMarkers: true,
-      polylineOptions: {
-        strokeColor: '#4285F4',
-        strokeWeight: 5,
-        strokeOpacity: 0.8,
-      },
-    });
-    directionsRendererRef.current = renderer;
-
     var directionsService = new google.maps.DirectionsService();
-    var origin = coords[0];
-    var destination = coords[coords.length - 1];
-    var waypoints = coords.slice(1, -1).map(function(c) {
-      return { location: c, stopover: true };
-    });
-
     var mode = google.maps.TravelMode[travelMode];
 
-    directionsService.route(
-      {
-        origin: origin,
-        destination: destination,
-        waypoints: waypoints,
-        travelMode: mode,
-        region: 'kr',
-      },
-      function(result: any, status: any) {
-        if (status === 'OK') {
-          renderer.setDirections(result);
-        } else {
-          console.error('Directions failed:', status);
-        }
+    if (travelMode === 'TRANSIT') {
+      for (var i = 0; i < coords.length - 1; i++) {
+        (function(origin, destination, index) {
+          var renderer = new google.maps.DirectionsRenderer({
+            map: map,
+            suppressMarkers: true,
+            polylineOptions: {
+              strokeColor: '#4285F4',
+              strokeWeight: 5,
+              strokeOpacity: 0.8,
+            },
+          });
+          renderersRef.current.push(renderer);
+
+          directionsService.route(
+            {
+              origin: origin,
+              destination: destination,
+              travelMode: mode,
+              region: 'kr',
+            },
+            function(result: any, status: any) {
+              if (status === 'OK') {
+                renderer.setDirections(result);
+              } else {
+                console.error('Transit route failed for segment ' + index + ':', status);
+              }
+            }
+          );
+        })(coords[i], coords[i + 1], i);
       }
-    );
-  }, [travelMode, mapReady]);
+    } else {
+      var renderer = new google.maps.DirectionsRenderer({
+        map: map,
+        suppressMarkers: true,
+        polylineOptions: {
+          strokeColor: '#4285F4',
+          strokeWeight: 5,
+          strokeOpacity: 0.8,
+        },
+      });
+      directionsRendererRef.current = renderer;
+
+      var origin = coords[0];
+      var destination = coords[coords.length - 1];
+      var waypoints = coords.slice(1, -1).map(function(c) {
+        return { location: c, stopover: true };
+      });
+
+      directionsService.route(
+        {
+          origin: origin,
+          destination: destination,
+          waypoints: waypoints,
+          travelMode: mode,
+          region: 'kr',
+        },
+        function(result: any, status: any) {
+          if (status === 'OK') {
+            renderer.setDirections(result);
+          } else {
+            console.error('Directions failed:', status);
+          }
+        }
+      );
+    }
+  }, [travelMode, mapReady]);;
 
   var modeLabels: Record<string, Record<string, string>> = {
     DRIVING: { ko: '자동차', en: 'Drive', ja: '車', zh: '驾车' },
