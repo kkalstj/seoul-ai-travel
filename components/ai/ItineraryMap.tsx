@@ -247,39 +247,36 @@ export default function ItineraryMap({ itinerary }: ItineraryMapProps) {
         })(coords[i], coords[i + 1], i);
       }
     } else {
-      var renderer = new google.maps.DirectionsRenderer({
-        map: map,
-        suppressMarkers: true,
-        polylineOptions: {
-          strokeColor: '#4285F4',
-          strokeWeight: 5,
-          strokeOpacity: 0.8,
-        },
-      });
-      directionsRendererRef.current = renderer;
+      for (var j = 0; j < coords.length - 1; j++) {
+        (function(origin, destination, index) {
+          var renderer = new google.maps.DirectionsRenderer({
+            map: map,
+            suppressMarkers: true,
+            polylineOptions: {
+              strokeColor: travelMode === 'DRIVING' ? '#4285F4' : '#34A853',
+              strokeWeight: 5,
+              strokeOpacity: 0.8,
+            },
+          });
+          renderersRef.current.push(renderer);
 
-      var origin = coords[0];
-      var destination = coords[coords.length - 1];
-      var waypoints = coords.slice(1, -1).map(function(c) {
-        return { location: c, stopover: true };
-      });
-
-      directionsService.route(
-        {
-          origin: origin,
-          destination: destination,
-          waypoints: waypoints,
-          travelMode: mode,
-          region: 'kr',
-        },
-        function(result: any, status: any) {
-          if (status === 'OK') {
-            renderer.setDirections(result);
-          } else {
-            console.error('Directions failed:', status);
-          }
-        }
-      );
+          directionsService.route(
+            {
+              origin: origin,
+              destination: destination,
+              travelMode: mode,
+              region: 'kr',
+            },
+            function(result: any, status: any) {
+              if (status === 'OK') {
+                renderer.setDirections(result);
+              } else {
+                console.error('Route failed for segment ' + index + ':', status);
+              }
+            }
+          );
+        })(coords[j], coords[j + 1], j);
+      }
     }
   }, [travelMode, mapReady]);;
 
