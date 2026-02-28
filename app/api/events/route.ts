@@ -56,6 +56,8 @@ async function translateEvents(events: any[], locale: string) {
   }
 }
 
+export var dynamic = 'force-dynamic';
+
 export async function GET(request: Request) {
   try {
     var apiKey = process.env.SEOUL_DATA_API_KEY;
@@ -63,9 +65,8 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'API key not configured' }, { status: 500 });
     }
 
-    var url = new URL(request.url);
-    var locale = url.searchParams.get('locale') || 'ko';
-
+    var reqUrl = new URL(request.url);
+    var locale = reqUrl.searchParams.get('locale') || 'ko';
     var today = new Date();
     var year = today.getFullYear();
     var month = String(today.getMonth() + 1).padStart(2, '0');
