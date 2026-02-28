@@ -102,7 +102,7 @@ export default function MyTripPage() {
             value={newTitle}
             onChange={function(e) { setNewTitle(e.target.value); }}
             onKeyDown={function(e) { if (e.key === 'Enter') handleCreateCourse(); }}
-            placeholder={t('myTrip.courseName')}
+            placeholder="{t('myTrip.courseName')}"
             className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 mb-3"
             autoFocus
           />
