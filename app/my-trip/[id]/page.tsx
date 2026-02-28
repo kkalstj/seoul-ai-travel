@@ -6,7 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, Plus, Trash2, GripVertical, MapPin, Share2, Search } from 'lucide-react';
 import { getCourseDetail, removePlaceFromCourse, reorderPlaces, addPlaceToCourse, updateCourse } from '@/lib/supabase/courses';
 import { supabase } from '@/lib/supabase/client';
-import KakaoMap from '@/components/map/NaverMap';
+import GoogleMap from '@/components/map/GoogleMap';
 
 interface CoursePlace {
   id: string;
@@ -276,7 +276,7 @@ export default function CourseDetailPage() {
           </button>
           {showMap && (
             <div className="mt-3">
-              <KakaoMap places={mapPlaces} className="h-80" />
+              <GoogleMap places={mapPlaces} className="h-80" />
             </div>
           )}
         </div>
