@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { supabase } from '@/lib/supabase/client';
-import { Car, PersonStanding, Train } from 'lucide-react';
+import { Train } from 'lucide-react';
 
 interface Place {
   name: string;
@@ -248,38 +248,6 @@ export default function ItineraryMap({ itinerary }: ItineraryMapProps) {
           );
         })(coords[i], coords[i + 1], i);
       }
-    } else {
-      for (var j = 0; j < coords.length - 1; j++) {
-        (function(origin, destination, index) {
-          var renderer = new google.maps.DirectionsRenderer({
-            map: map,
-            suppressMarkers: true,
-            polylineOptions: {
-              strokeColor: travelMode === 'DRIVING' ? '#4285F4' : '#34A853',
-              strokeWeight: 5,
-              strokeOpacity: 0.8,
-            },
-          });
-          renderersRef.current.push(renderer);
-
-          directionsService.route(
-            {
-              origin: new google.maps.LatLng(origin.lat, origin.lng),
-              destination: new google.maps.LatLng(destination.lat, destination.lng),
-              travelMode: mode,
-              region: 'kr',
-            },
-            function(result: any, status: any) {
-              if (status === 'OK') {
-                renderer.setDirections(result);
-              } else {
-                console.error('Route failed for segment ' + index + ':', status);
-              }
-            }
-          );
-        })(coords[j], coords[j + 1], j);
-      }
-    }
   }, [travelMode, mapReady]);;
 
   var modeLabels: Record<string, Record<string, string>> = {
@@ -304,27 +272,10 @@ export default function ItineraryMap({ itinerary }: ItineraryMapProps) {
         )}
         {mapReady && coordsRef.current.length > 1 && (
           <div className="absolute top-3 right-3 bg-white rounded-lg shadow-md flex overflow-hidden text-xs z-10">
-            <button
-              onClick={function() { setTravelMode('TRANSIT'); }}
-              className={'flex items-center gap-1 px-3 py-2 transition ' + (travelMode === 'TRANSIT' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100')}
-            >
+            <div className="flex items-center gap-1 px-3 py-2 bg-blue-600 text-white">
               <Train size={14} />
               {modeLabels.TRANSIT[locale]}
-            </button>
-            <button
-              onClick={function() { setTravelMode('DRIVING'); }}
-              className={'flex items-center gap-1 px-3 py-2 transition ' + (travelMode === 'DRIVING' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100')}
-            >
-              <Car size={14} />
-              {modeLabels.DRIVING[locale]}
-            </button>
-            <button
-              onClick={function() { setTravelMode('WALKING'); }}
-              className={'flex items-center gap-1 px-3 py-2 transition ' + (travelMode === 'WALKING' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100')}
-            >
-              <PersonStanding size={14} />
-              {modeLabels.WALKING[locale]}
-            </button>
+            </div>
           </div>
         )}
       </div>
