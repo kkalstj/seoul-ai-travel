@@ -231,10 +231,10 @@ export default function ItineraryMap({ itinerary }: ItineraryMapProps) {
           });
           renderersRef.current.push(renderer);
 
-          directionsService.route(
+         directionsService.route(
             {
-              origin: origin,
-              destination: destination,
+              origin: new google.maps.LatLng(origin.lat, origin.lng),
+              destination: new google.maps.LatLng(destination.lat, destination.lng),
               travelMode: mode,
               region: 'kr',
             },
@@ -264,8 +264,8 @@ export default function ItineraryMap({ itinerary }: ItineraryMapProps) {
 
           directionsService.route(
             {
-              origin: origin,
-              destination: destination,
+              origin: new google.maps.LatLng(origin.lat, origin.lng),
+              destination: new google.maps.LatLng(destination.lat, destination.lng),
               travelMode: mode,
               region: 'kr',
             },
