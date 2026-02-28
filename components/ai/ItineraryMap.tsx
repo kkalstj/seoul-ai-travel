@@ -195,8 +195,6 @@ export default function ItineraryMap({ itinerary }: ItineraryMapProps) {
     return function() { cancelled = true; };
   }, [itinerary]);
 
-  var renderersRef = useRef<any[]>([]);
-
   useEffect(function() {
     if (!mapReady || coordsRef.current.length < 2 || !mapInstanceRef.current) return;
 
@@ -213,47 +211,42 @@ export default function ItineraryMap({ itinerary }: ItineraryMapProps) {
     }
 
     var directionsService = new google.maps.DirectionsService();
-    console.log('Coords:', JSON.stringify(coords));
-    console.log('Travel mode:', travelMode);
-    var mode = google.maps.TravelMode[travelMode];
+    var mode = google.maps.TravelMode.TRANSIT;
 
-    if (travelMode === 'TRANSIT') {
-      for (var i = 0; i < coords.length - 1; i++) {
-        (function(origin, destination, index) {
-          var renderer = new google.maps.DirectionsRenderer({
-            map: map,
-            suppressMarkers: true,
-            polylineOptions: {
-              strokeColor: '#4285F4',
-              strokeWeight: 5,
-              strokeOpacity: 0.8,
-            },
-          });
-          renderersRef.current.push(renderer);
+    for (var i = 0; i < coords.length - 1; i++) {
+      (function(origin, destination, index) {
+        var renderer = new google.maps.DirectionsRenderer({
+          map: map,
+          suppressMarkers: true,
+          polylineOptions: {
+            strokeColor: '#4285F4',
+            strokeWeight: 5,
+            strokeOpacity: 0.8,
+          },
+        });
+        renderersRef.current.push(renderer);
 
-         directionsService.route(
-            {
-              origin: new google.maps.LatLng(origin.lat, origin.lng),
-              destination: new google.maps.LatLng(destination.lat, destination.lng),
-              travelMode: mode,
-              region: 'kr',
-            },
-            function(result: any, status: any) {
-              if (status === 'OK') {
-                renderer.setDirections(result);
-              } else {
-                console.error('Transit route failed for segment ' + index + ':', status);
-              }
+        directionsService.route(
+          {
+            origin: new google.maps.LatLng(origin.lat, origin.lng),
+            destination: new google.maps.LatLng(destination.lat, destination.lng),
+            travelMode: mode,
+            region: 'kr',
+          },
+          function(result: any, status: any) {
+            if (status === 'OK') {
+              renderer.setDirections(result);
+            } else {
+              console.error('Transit route failed for segment ' + index + ':', status);
             }
-          );
-        })(coords[i], coords[i + 1], i);
-      }
+          }
+        );
+      })(coords[i], coords[i + 1], i);
+    }
   }, [travelMode, mapReady]);
 
   var modeLabels: Record<string, Record<string, string>> = {
-    DRIVING: { ko: '자동차', en: 'Drive', ja: '車', zh: '驾车' },
     TRANSIT: { ko: '대중교통', en: 'Transit', ja: '電車', zh: '公交' },
-    WALKING: { ko: '도보', en: 'Walk', ja: '徒歩', zh: '步行' },
   };
 
   var locale = useLanguage().locale;
