@@ -213,6 +213,8 @@ export default function ItineraryMap({ itinerary }: ItineraryMapProps) {
     }
 
     var directionsService = new google.maps.DirectionsService();
+    console.log('Coords:', JSON.stringify(coords));
+    console.log('Travel mode:', travelMode);
     var mode = google.maps.TravelMode[travelMode];
 
     if (travelMode === 'TRANSIT') {
