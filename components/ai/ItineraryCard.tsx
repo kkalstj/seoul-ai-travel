@@ -88,37 +88,38 @@ export default function ItineraryCard({ itinerary }: ItineraryCardProps) {
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-5 py-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-white font-bold text-lg">{itinerary.title}</h3>
-            <p className="text-blue-100 text-sm mt-1">{itinerary.description}</p>
-          </div>
-          <button
-            onClick={handleSave}
-            disabled={saving || saved}
-            className={'flex items-center gap-0.5 px-1.5 py-0.5 rounded-lg text-sm font-medium transition ' + (saved ? 'bg-green-500 text-white' : 'bg-white/20 text-white hover:bg-white/30')}
-          >
-            {saved ? (
-              <>
-                <Check size={14} />
-                저장됨
-              </>
-            ) : saving ? (
-              <>
-                <div className="w-3.5 h-3.5 border-2 border-white/50 border-t-white rounded-full animate-spin" />
-                저장 중
-              </>
-            ) : (
-              <>
-                <Save size={14} />
-                코스 저장
-              </>
-            )}
-          </button>
+   <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-5 py-4 relative">
+        <button
+          onClick={handleSave}
+          disabled={saving || saved}
+          className={'absolute top-3 right-3 flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition whitespace-nowrap ' + (saved ? 'bg-green-500 text-white' : 'bg-white/20 text-white hover:bg-white/30')}
+        >
+          {saved ? (
+            <>
+              <Check size={12} />
+              {t('ai.saved')}
+            </>
+          ) : saving ? (
+            <>
+              <div className="w-3 h-3 border-2 border-white/50 border-t-white rounded-full animate-spin" />
+              {t('ai.saving')}
+            </>
+          ) : (
+            <>
+              <Save size={12} />
+              {t('ai.saveCourse')}
+            </>
+          )}
+        </button>
+        <div className="pr-20">
+          <h3 className="text-white font-bold text-lg">{itinerary.title}</h3>
+          <p className="text-blue-100 text-sm mt-1">{itinerary.description}</p>
         </div>
       </div>
-
+        <div className="pr-20">
+          <h3 className="text-white font-bold text-lg">{itinerary.title}</h3>
+          <p className="text-blue-100 text-sm mt-1">{itinerary.description}</p>
+        </div>
       {saved && (
         <div className="bg-green-50 px-5 py-2 flex items-center justify-between">
           <span className="text-green-700 text-sm">내 여행에 저장되었습니다!</span>
@@ -192,5 +193,6 @@ export default function ItineraryCard({ itinerary }: ItineraryCardProps) {
     </div>
   );
 }
+
 
 
