@@ -97,7 +97,7 @@ export default function ItineraryCard({ itinerary }: ItineraryCardProps) {
           <button
             onClick={handleSave}
             disabled={saving || saved}
-            className={'flex items-center gap-1 px-2.5 py-1 rounded-lg text-sm font-medium transition ' + (saved ? 'bg-green-500 text-white' : 'bg-white/20 text-white hover:bg-white/30')}
+            className={'flex items-center gap-0.5 px-1.5 py-0.5 rounded-lg text-sm font-medium transition ' + (saved ? 'bg-green-500 text-white' : 'bg-white/20 text-white hover:bg-white/30')}
           >
             {saved ? (
               <>
@@ -192,4 +192,5 @@ export default function ItineraryCard({ itinerary }: ItineraryCardProps) {
     </div>
   );
 }
+
 
