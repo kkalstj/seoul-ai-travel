@@ -2,8 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { MapPin } from 'lucide-react';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
+import dynamic from 'next/dynamic';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { supabase } from '@/lib/supabase/client';
 
@@ -46,11 +45,14 @@ var typeEmoji: Record<string, string> = {
 export default function ItineraryMap({ itinerary }: ItineraryMapProps) {
   var { t } = useLanguage();
   var mapRef = useRef<HTMLDivElement>(null);
-  var mapInstanceRef = useRef<L.Map | null>(null);
+  var mapInstanceRef = useRef<any>(null);
   var [loading, setLoading] = useState(true);
 
   useEffect(function() {
     if (!mapRef.current || mapInstanceRef.current) return;
+
+    var L = require('leaflet');
+    require('leaflet/dist/leaflet.css');
 
     var map = L.map(mapRef.current, {
       center: [37.5665, 126.978],
