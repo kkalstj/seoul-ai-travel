@@ -8,8 +8,8 @@ import Pagination from '@/components/ui/Pagination';
 import CategoryFilter from '@/components/filters/CategoryFilter';
 import PlaceCard from '@/components/cards/PlaceCard';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
-import KakaoMap from '@/components/map/NaverMap';
-import type { MapPlace } from '@/components/map/KakaoMap';
+import GoogleMap from '@/components/map/GoogleMap';
+import type { MapPlace } from '@/components/map/GoogleMap';
 import {
   EXPLORE_TABS,
   FOOD_TYPES,
@@ -298,7 +298,7 @@ export default function ExplorePage() {
             }`}
           >
             <div className="sticky top-20">
-              <KakaoMap
+              <GoogleMap
                 places={mapPlaces}
                 selectedPlaceId={selectedPlaceId}
                 onMarkerClick={handleMarkerClick}
@@ -345,6 +345,7 @@ export default function ExplorePage() {
   );
 
 }
+
 
 
 
