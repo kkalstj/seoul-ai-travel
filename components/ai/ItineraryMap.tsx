@@ -248,7 +248,7 @@ export default function ItineraryMap({ itinerary }: ItineraryMapProps) {
           );
         })(coords[i], coords[i + 1], i);
       }
-  }, [travelMode, mapReady]);;
+  }, [travelMode, mapReady]);
 
   var modeLabels: Record<string, Record<string, string>> = {
     DRIVING: { ko: '자동차', en: 'Drive', ja: '車', zh: '驾车' },
