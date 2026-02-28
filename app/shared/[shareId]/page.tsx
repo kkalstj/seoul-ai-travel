@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { MapPin } from 'lucide-react';
 import { getCourseByShareId } from '@/lib/supabase/courses';
-import KakaoMap from '@/components/map/NaverMap';
+import GoogleMap from '@/components/map/GoogleMap';
 
 export default function SharedCoursePage() {
   var { t } = useLanguage();
@@ -87,7 +87,7 @@ export default function SharedCoursePage() {
 
       {mapPlaces.length > 0 && showMap && (
        <div className="mb-6" style={{ position: 'relative', zIndex: 0, height: '300px' }}>
-  <KakaoMap places={mapPlaces} className="h-full" />
+  <GoogleMap places={mapPlaces} className="h-full" />
 </div>
       )}
 
