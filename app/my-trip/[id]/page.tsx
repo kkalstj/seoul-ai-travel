@@ -123,6 +123,8 @@ export default function CourseDetailPage() {
     mapRenderersRef.current = [];
 
     var places = courseData.places.filter(function(p) { return p.place_latitude && p.place_longitude; });
+    console.log('Total places:', courseData.places.length, 'With coords:', places.length);
+    console.log('Places:', JSON.stringify(places.map(function(p) { return { name: p.place_name, lat: p.place_latitude, lng: p.place_longitude }; })));
     if (places.length === 0) return;
 
     var bounds = new google.maps.LatLngBounds();
