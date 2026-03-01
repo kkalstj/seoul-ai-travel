@@ -3,10 +3,9 @@
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Plus, Trash2, GripVertical, MapPin, Share2, Search } from 'lucide-react';
-import { getCourseDetail, removePlaceFromCourse, reorderPlaces, addPlaceToCourse, updateCourse } from '@/lib/supabase/courses';
+import { ArrowLeft, Plus, Trash2, MapPin, Share2, Search, Calendar, ChevronDown, ChevronUp, Map } from 'lucide-react';
+import { getCourseDetail, removePlaceFromCourse, addPlaceToCourse, updateCourse } from '@/lib/supabase/courses';
 import { supabase } from '@/lib/supabase/client';
-import GoogleMap from '@/components/map/GoogleMap';
 
 interface CoursePlace {
   id: string;
@@ -30,27 +29,146 @@ interface Course {
   places: CoursePlace[];
 }
 
+function loadGoogleMaps(): Promise<void> {
+  return new Promise(function(resolve, reject) {
+    if ((window as any).google && (window as any).google.maps) {
+      resolve();
+      return;
+    }
+    var existing = document.getElementById('google-maps-script');
+    if (existing) {
+      existing.addEventListener('load', function() { resolve(); });
+      return;
+    }
+    var script = document.createElement('script');
+    script.id = 'google-maps-script';
+    script.src = 'https://maps.googleapis.com/maps/api/js?key=' + process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY + '&libraries=places';
+    script.async = true;
+    script.defer = true;
+    script.onload = function() { resolve(); };
+    script.onerror = function() { reject(new Error('Google Maps load failed')); };
+    document.head.appendChild(script);
+  });
+}
+
 export default function CourseDetailPage() {
-  var { t } = useLanguage();
+  var { t, locale } = useLanguage();
   var params = useParams();
   var router = useRouter();
   var courseId = params.id as string;
 
   var [course, setCourse] = useState<Course | null>(null);
   var [loading, setLoading] = useState(true);
-  var [showSearch, setShowSearch] = useState(false);
-  var [searchQuery, setSearchQuery] = useState('');
-  var [searchResults, setSearchResults] = useState<any[]>([]);
-  var [searching, setSearching] = useState(false);
   var [editingTitle, setEditingTitle] = useState(false);
   var [titleInput, setTitleInput] = useState('');
   var [copied, setCopied] = useState(false);
   var [showMap, setShowMap] = useState(false);
-  var [dragIndex, setDragIndex] = useState<number | null>(null);
+  var [searchDay, setSearchDay] = useState<number | null>(null);
+  var [searchQuery, setSearchQuery] = useState('');
+  var [searchResults, setSearchResults] = useState<any[]>([]);
+  var [searching, setSearching] = useState(false);
+  var [collapsedDays, setCollapsedDays] = useState<Record<number, boolean>>({});
+  var [mapContainer, setMapContainer] = useState<HTMLDivElement | null>(null);
+  var [mapInstance, setMapInstance] = useState<any>(null);
+  var [mapRenderers, setMapRenderers] = useState<any[]>([]);
 
   useEffect(function() {
     loadCourse();
   }, [courseId]);
+
+  useEffect(function() {
+    if (!showMap || !mapContainer || !course) return;
+
+    async function initMap() {
+      try {
+        await loadGoogleMaps();
+        var google = (window as any).google;
+
+        var map = new google.maps.Map(mapContainer, {
+          center: { lat: 37.5665, lng: 126.978 },
+          zoom: 13,
+          mapTypeControl: false,
+          streetViewControl: false,
+          fullscreenControl: false,
+        });
+
+        setMapInstance(map);
+        drawRoute(map, course!);
+      } catch (err) {
+        console.error('Map error:', err);
+      }
+    }
+
+    initMap();
+  }, [showMap, mapContainer, course]);
+
+  function drawRoute(map: any, courseData: Course) {
+    var google = (window as any).google;
+    if (!google) return;
+
+    mapRenderers.forEach(function(r) { r.setMap(null); });
+
+    var places = courseData.places.filter(function(p) { return p.place_latitude && p.place_longitude; });
+    if (places.length === 0) return;
+
+    var bounds = new google.maps.LatLngBounds();
+    var typeColors: Record<string, string> = {
+      restaurant: '#F97316',
+      accommodation: '#14B8A6',
+      attraction: '#8B5CF6',
+    };
+
+    places.forEach(function(place, i) {
+      var pos = { lat: place.place_latitude!, lng: place.place_longitude! };
+      var color = typeColors[place.place_type] || '#8B5CF6';
+
+      new google.maps.Marker({
+        position: pos,
+        map: map,
+        label: { text: String(i + 1), color: 'white', fontWeight: 'bold', fontSize: '11px' },
+        icon: { path: google.maps.SymbolPath.CIRCLE, scale: 14, fillColor: color, fillOpacity: 1, strokeColor: 'white', strokeWeight: 2 },
+        title: place.place_name,
+      });
+
+      bounds.extend(pos);
+    });
+
+    if (places.length > 1) {
+      var directionsService = new google.maps.DirectionsService();
+      var newRenderers: any[] = [];
+
+      for (var i = 0; i < places.length - 1; i++) {
+        (function(origin, destination, index) {
+          var renderer = new google.maps.DirectionsRenderer({
+            map: map,
+            suppressMarkers: true,
+            polylineOptions: { strokeColor: '#4285F4', strokeWeight: 4, strokeOpacity: 0.7 },
+          });
+          newRenderers.push(renderer);
+
+          directionsService.route(
+            {
+              origin: new google.maps.LatLng(origin.place_latitude!, origin.place_longitude!),
+              destination: new google.maps.LatLng(destination.place_latitude!, destination.place_longitude!),
+              travelMode: google.maps.TravelMode.TRANSIT,
+              region: 'kr',
+            },
+            function(result: any, status: any) {
+              if (status === 'OK') {
+                renderer.setDirections(result);
+              }
+            }
+          );
+        })(places[i], places[i + 1], i);
+      }
+
+      setMapRenderers(newRenderers);
+      map.fitBounds(bounds, { padding: 50 });
+    } else {
+      map.setCenter({ lat: places[0].place_latitude!, lng: places[0].place_longitude! });
+      map.setZoom(15);
+    }
+  }
 
   async function loadCourse() {
     try {
@@ -62,6 +180,48 @@ export default function CourseDetailPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  function getDays(): number[] {
+    if (!course) return [1];
+    var days: number[] = [];
+    course.places.forEach(function(p) {
+      if (days.indexOf(p.day_number) === -1) days.push(p.day_number);
+    });
+    if (days.length === 0) days.push(1);
+    days.sort(function(a, b) { return a - b; });
+    return days;
+  }
+
+  function getPlacesForDay(day: number): CoursePlace[] {
+    if (!course) return [];
+    return course.places
+      .filter(function(p) { return p.day_number === day; })
+      .sort(function(a, b) { return a.order_index - b.order_index; });
+  }
+
+  async function handleAddDay() {
+    if (!course) return;
+    var days = getDays();
+    var newDay = days[days.length - 1] + 1;
+    setCollapsedDays(function(prev) { var next = { ...prev }; next[newDay] = false; return next; });
+    setSearchDay(newDay);
+  }
+
+  async function handleRemoveDay(day: number) {
+    if (!course) return;
+    var dayPlaces = getPlacesForDay(day);
+    var confirmMsg = locale === 'ko' ? 'Day ' + day + '의 장소 ' + dayPlaces.length + '개가 모두 삭제됩니다. 삭제하시겠습니까?' :
+      locale === 'ja' ? 'Day ' + day + 'の' + dayPlaces.length + '箇所がすべて削除されます。削除しますか？' :
+      locale === 'zh' ? '将删除Day ' + day + '的' + dayPlaces.length + '个地点。确定删除吗？' :
+      'All ' + dayPlaces.length + ' places in Day ' + day + ' will be deleted. Continue?';
+    
+    if (dayPlaces.length > 0 && !confirm(confirmMsg)) return;
+
+    for (var i = 0; i < dayPlaces.length; i++) {
+      await removePlaceFromCourse(dayPlaces[i].id);
+    }
+    await loadCourse();
   }
 
   async function handleSearch() {
@@ -114,11 +274,10 @@ export default function CourseDetailPage() {
     }
   }
 
-  async function handleAddPlace(result: any) {
+  async function handleAddPlace(result: any, dayNumber: number) {
     if (!course) return;
     try {
       await addPlaceToCourse(course.id, {
-        place_id: result.id,
         place_type: result.type,
         place_name: result.name,
         place_address: result.address,
@@ -126,6 +285,7 @@ export default function CourseDetailPage() {
         place_longitude: result.longitude,
         place_rating: result.rating,
         place_category: result.category,
+        day_number: dayNumber,
       });
       await loadCourse();
       setSearchQuery('');
@@ -142,6 +302,22 @@ export default function CourseDetailPage() {
     } catch (err) {
       console.error('장소 삭제 실패:', err);
     }
+  }
+
+  async function handleMoveUp(place: CoursePlace, dayPlaces: CoursePlace[], index: number) {
+    if (index === 0) return;
+    var prevPlace = dayPlaces[index - 1];
+    await supabase.from('course_places').update({ order_index: prevPlace.order_index }).eq('id', place.id);
+    await supabase.from('course_places').update({ order_index: place.order_index }).eq('id', prevPlace.id);
+    await loadCourse();
+  }
+
+  async function handleMoveDown(place: CoursePlace, dayPlaces: CoursePlace[], index: number) {
+    if (index === dayPlaces.length - 1) return;
+    var nextPlace = dayPlaces[index + 1];
+    await supabase.from('course_places').update({ order_index: nextPlace.order_index }).eq('id', place.id);
+    await supabase.from('course_places').update({ order_index: place.order_index }).eq('id', nextPlace.id);
+    await loadCourse();
   }
 
   async function handleTitleSave() {
@@ -163,53 +339,36 @@ export default function CourseDetailPage() {
     setTimeout(function() { setCopied(false); }, 2000);
   }
 
-  async function handleMoveUp(index: number) {
-    if (!course || index === 0) return;
-    var newPlaces = [...course.places];
-    var temp = newPlaces[index];
-    newPlaces[index] = newPlaces[index - 1];
-    newPlaces[index - 1] = temp;
-    var placeIds = newPlaces.map(function(p) { return p.id; });
-    await reorderPlaces(course.id, placeIds);
-    await loadCourse();
+  function toggleDay(day: number) {
+    setCollapsedDays(function(prev) {
+      var next = { ...prev };
+      next[day] = !next[day];
+      return next;
+    });
   }
 
-  async function handleMoveDown(index: number) {
-    if (!course || index === course.places.length - 1) return;
-    var newPlaces = [...course.places];
-    var temp = newPlaces[index];
-    newPlaces[index] = newPlaces[index + 1];
-    newPlaces[index + 1] = temp;
-    var placeIds = newPlaces.map(function(p) { return p.id; });
-    await reorderPlaces(course.id, placeIds);
-    await loadCourse();
-  }
-
-  var mapPlaces = course ? course.places
-    .filter(function(p) { return p.place_latitude && p.place_longitude; })
-    .map(function(p) {
-      return {
-        id: p.id,
-        name: p.place_name,
-        type: p.place_type as any,
-        latitude: p.place_latitude!,
-        longitude: p.place_longitude!,
-        address: p.place_address,
-        rating: p.place_rating,
-        category: p.place_category,
-      };
-    }) : [];
-
-  var typeLabels: Record<string, string> = {
-    restaurant: '음식점',
-    accommodation: '숙소',
-    attraction: '관광지',
+  var typeLabels: Record<string, Record<string, string>> = {
+    restaurant: { ko: '음식점', en: 'Restaurant', ja: 'レストラン', zh: '餐厅' },
+    accommodation: { ko: '숙소', en: 'Hotel', ja: '宿泊', zh: '住宿' },
+    attraction: { ko: '관광지', en: 'Attraction', ja: '観光地', zh: '景点' },
   };
 
   var typeColors: Record<string, string> = {
     restaurant: 'bg-orange-100 text-orange-700',
-    accommodation: 'bg-purple-100 text-purple-700',
-    attraction: 'bg-green-100 text-green-700',
+    accommodation: 'bg-teal-100 text-teal-700',
+    attraction: 'bg-purple-100 text-purple-700',
+  };
+
+  var labels: Record<string, Record<string, string>> = {
+    addDay: { ko: '일자 추가', en: 'Add Day', ja: '日程追加', zh: '添加日程' },
+    removeDay: { ko: '일자 삭제', en: 'Remove Day', ja: '日程削除', zh: '删除日程' },
+    addPlace: { ko: '장소 추가', en: 'Add Place', ja: '場所追加', zh: '添加地点' },
+    searchPlace: { ko: '장소를 검색하세요', en: 'Search places', ja: '場所を検索', zh: '搜索地点' },
+    noPlaces: { ko: '아직 장소가 없습니다', en: 'No places yet', ja: 'まだ場所がありません', zh: '还没有地点' },
+    addPlaceHint: { ko: '아래 버튼으로 장소를 추가하세요', en: 'Add places using the button below', ja: '下のボタンから場所を追加', zh: '使用下方按钮添加地点' },
+    showRoute: { ko: '경로 보기', en: 'View Route', ja: 'ルート表示', zh: '查看路线' },
+    hideRoute: { ko: '경로 숨기기', en: 'Hide Route', ja: 'ルート非表示', zh: '隐藏路线' },
+    places: { ko: '개 장소', en: ' places', ja: '箇所', zh: '个地点' },
   };
 
   if (loading) {
@@ -228,10 +387,12 @@ export default function CourseDetailPage() {
     );
   }
 
+  var days = getDays();
+
   return (
     <div className="max-w-2xl mx-auto px-4 py-6">
       {/* 헤더 */}
-      <div className="flex items-center gap-3 mb-6">
+      <div className="flex items-center gap-3 mb-4">
         <button onClick={function() { router.push('/my-trip'); }} className="p-2 hover:bg-gray-100 rounded-lg">
           <ArrowLeft size={20} />
         </button>
@@ -264,149 +425,195 @@ export default function CourseDetailPage() {
         </button>
       </div>
 
-      {/* 지도 토글 */}
-      {mapPlaces.length > 0 && (
-        <div className="mb-4">
-          <button
-            onClick={function() { setShowMap(!showMap); }}
-            className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 font-medium"
-          >
-            <MapPin size={16} />
-            {showMap ? t('myTrip.hideMap') : t('myTrip.showMap') + ' (' + mapPlaces.length + ')'}
-          </button>
-          {showMap && (
-            <div className="mt-3">
-              <GoogleMap places={mapPlaces} className="h-80" />
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* 장소 추가 */}
+      {/* 경로 보기 */}
       <div className="mb-4">
         <button
-          onClick={function() { setShowSearch(!showSearch); }}
-          className="flex items-center gap-2 w-full bg-white border-2 border-dashed border-gray-300 rounded-xl p-3 text-gray-500 hover:border-blue-400 hover:text-blue-600 transition"
+          onClick={function() { setShowMap(!showMap); }}
+          className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 font-medium"
         >
-          <Plus size={18} />
-          {t('myTrip.addPlace')}
+          <Map size={16} />
+          {showMap ? labels.hideRoute[locale] : labels.showRoute[locale]}
         </button>
-
-        {showSearch && (
-          <div className="mt-3 bg-white rounded-xl border p-4 shadow-sm">
-            <div className="flex gap-2 mb-3">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={function(e) { setSearchQuery(e.target.value); }}
-                onKeyDown={function(e) { if (e.key === 'Enter') handleSearch(); }}
-                placeholder={t('myTrip.searchPlace')}
-                className="flex-1 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                autoFocus
-              />
-              <button
-                onClick={handleSearch}
-                disabled={searching}
-                className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50"
-              >
-                <Search size={16} />
-              </button>
-            </div>
-
-            {searching && (
-              <div className="text-center py-4">
-                <div className="w-6 h-6 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto" />
-              </div>
-            )}
-
-            {searchResults.length > 0 && (
-              <div className="space-y-2 max-h-60 overflow-y-auto">
-                {searchResults.map(function(result) {
-                  return (
-                    <div
-                      key={result.type + '-' + result.id}
-                      className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg cursor-pointer"
-                      onClick={function() { handleAddPlace(result); }}
-                    >
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className={'text-xs px-2 py-0.5 rounded-full ' + (typeColors[result.type] || 'bg-gray-100 text-gray-600')}>
-                            {typeLabels[result.type] || result.type}
-                          </span>
-                          <span className="font-medium text-sm">{result.name}</span>
-                        </div>
-                        {result.address && (
-                          <p className="text-xs text-gray-400 mt-0.5 ml-1">{result.address}</p>
-                        )}
-                      </div>
-                      <Plus size={16} className="text-blue-500" />
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {searchResults.length === 0 && searchQuery && !searching && (
-              <p className="text-center text-sm text-gray-400 py-3">{t('explore.noResults')}</p>
-            )}
+        {showMap && (
+          <div className="mt-3 rounded-2xl overflow-hidden border shadow-sm">
+            <div ref={function(el) { setMapContainer(el); }} style={{ height: '350px', width: '100%' }} />
           </div>
         )}
       </div>
 
-      {/* 장소 목록 */}
-      {course.places.length === 0 ? (
-        <div className="text-center py-12">
-          <MapPin size={36} className="mx-auto text-gray-300 mb-3" />
-          <p className="text-gray-400">{t('myTrip.noPlaces')}</p>
-          <p className="text-gray-400 text-sm">{t('myTrip.noPlacesHint')}</p>
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {course.places.map(function(place, index) {
-            return (
-              <div key={place.id} className="bg-white rounded-xl p-3 shadow-sm border flex items-center gap-3">
-                <div className="flex flex-col gap-1">
-                  <button
-                    onClick={function() { handleMoveUp(index); }}
-                    disabled={index === 0}
-                    className="text-gray-400 hover:text-gray-600 disabled:opacity-30 text-xs"
-                  >
-                    ▲
-                  </button>
-                  <span className="text-xs text-gray-300 text-center">{index + 1}</span>
-                  <button
-                    onClick={function() { handleMoveDown(index); }}
-                    disabled={index === course.places.length - 1}
-                    className="text-gray-400 hover:text-gray-600 disabled:opacity-30 text-xs"
-                  >
-                    ▼
-                  </button>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <span className={'text-xs px-2 py-0.5 rounded-full ' + (typeColors[place.place_type] || 'bg-gray-100 text-gray-600')}>
-                      {typeLabels[place.place_type] || place.place_type}
-                    </span>
-                    <span className="font-medium text-sm truncate">{place.place_name}</span>
+      {/* 일자별 장소 */}
+      <div className="space-y-4">
+        {days.map(function(day) {
+          var dayPlaces = getPlacesForDay(day);
+          var isCollapsed = collapsedDays[day];
+
+          return (
+            <div key={day} className="bg-white rounded-2xl border shadow-sm overflow-hidden">
+              {/* 일자 헤더 */}
+              <div
+                className="flex items-center justify-between px-4 py-3 bg-gray-50 cursor-pointer hover:bg-gray-100 transition"
+                onClick={function() { toggleDay(day); }}
+              >
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 px-3 py-1 bg-blue-100 rounded-full">
+                    <Calendar className="w-3.5 h-3.5 text-blue-600" />
+                    <span className="text-sm font-bold text-blue-700">Day {day}</span>
                   </div>
-                  {place.place_address && (
-                    <p className="text-xs text-gray-400 truncate">{place.place_address}</p>
+                  <span className="text-xs text-gray-400">{dayPlaces.length}{labels.places[locale]}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {days.length > 1 && (
+                    <button
+                      onClick={function(e) { e.stopPropagation(); handleRemoveDay(day); }}
+                      className="text-xs text-gray-400 hover:text-red-500 px-2 py-1 rounded hover:bg-red-50 transition"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  )}
+                  {isCollapsed ? <ChevronDown size={16} className="text-gray-400" /> : <ChevronUp size={16} className="text-gray-400" />}
+                </div>
+              </div>
+
+              {/* 장소 목록 */}
+              {!isCollapsed && (
+                <div className="p-3">
+                  {dayPlaces.length === 0 ? (
+                    <div className="text-center py-6">
+                      <MapPin size={24} className="mx-auto text-gray-300 mb-2" />
+                      <p className="text-sm text-gray-400">{labels.noPlaces[locale]}</p>
+                      <p className="text-xs text-gray-300">{labels.addPlaceHint[locale]}</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {dayPlaces.map(function(place, index) {
+                        return (
+                          <div key={place.id} className="flex items-center gap-2 p-2.5 rounded-xl hover:bg-gray-50 transition">
+                            <div className="flex flex-col gap-0.5">
+                              <button
+                                onClick={function() { handleMoveUp(place, dayPlaces, index); }}
+                                disabled={index === 0}
+                                className="text-gray-400 hover:text-gray-600 disabled:opacity-20 text-xs leading-none"
+                              >▲</button>
+                              <span className="text-xs text-gray-300 text-center leading-none">{index + 1}</span>
+                              <button
+                                onClick={function() { handleMoveDown(place, dayPlaces, index); }}
+                                disabled={index === dayPlaces.length - 1}
+                                className="text-gray-400 hover:text-gray-600 disabled:opacity-20 text-xs leading-none"
+                              >▼</button>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-0.5">
+                                <span className={'text-xs px-2 py-0.5 rounded-full ' + (typeColors[place.place_type] || 'bg-gray-100 text-gray-600')}>
+                                  {(typeLabels[place.place_type] || {})[locale] || place.place_type}
+                                </span>
+                                <span className="font-medium text-sm truncate">{place.place_name}</span>
+                              </div>
+                              {place.place_address && (
+                                <p className="text-xs text-gray-400 truncate pl-1">{place.place_address}</p>
+                              )}
+                              {place.memo && (
+                                <p className="text-xs text-amber-600 mt-1 pl-1">💡 {place.memo}</p>
+                              )}
+                            </div>
+                            {place.place_rating && (
+                              <span className="text-xs text-yellow-500 shrink-0">★ {place.place_rating.toFixed(1)}</span>
+                            )}
+                            <button
+                              onClick={function() { handleRemovePlace(place.id); }}
+                              className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg shrink-0"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* 장소 추가 버튼 */}
+                  <button
+                    onClick={function() { setSearchDay(searchDay === day ? null : day); setSearchQuery(''); setSearchResults([]); }}
+                    className="flex items-center gap-1.5 w-full mt-2 p-2 border-2 border-dashed border-gray-200 rounded-xl text-gray-400 hover:border-blue-400 hover:text-blue-500 transition text-sm justify-center"
+                  >
+                    <Plus size={16} />
+                    {labels.addPlace[locale]}
+                  </button>
+
+                  {/* 검색 패널 */}
+                  {searchDay === day && (
+                    <div className="mt-3 bg-gray-50 rounded-xl p-3">
+                      <div className="flex gap-2 mb-2">
+                        <input
+                          type="text"
+                          value={searchQuery}
+                          onChange={function(e) { setSearchQuery(e.target.value); }}
+                          onKeyDown={function(e) { if (e.key === 'Enter') handleSearch(); }}
+                          placeholder={labels.searchPlace[locale]}
+                          className="flex-1 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                          autoFocus
+                        />
+                        <button
+                          onClick={handleSearch}
+                          disabled={searching}
+                          className="px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                        >
+                          <Search size={16} />
+                        </button>
+                      </div>
+
+                      {searching && (
+                        <div className="text-center py-3">
+                          <div className="w-5 h-5 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto" />
+                        </div>
+                      )}
+
+                      {searchResults.length > 0 && (
+                        <div className="space-y-1 max-h-48 overflow-y-auto">
+                          {searchResults.map(function(result) {
+                            return (
+                              <div
+                                key={result.type + '-' + result.id}
+                                className="flex items-center justify-between p-2 hover:bg-white rounded-lg cursor-pointer transition"
+                                onClick={function() { handleAddPlace(result, day); }}
+                              >
+                                <div className="min-w-0">
+                                  <div className="flex items-center gap-2">
+                                    <span className={'text-xs px-2 py-0.5 rounded-full shrink-0 ' + (typeColors[result.type] || 'bg-gray-100 text-gray-600')}>
+                                      {(typeLabels[result.type] || {})[locale] || result.type}
+                                    </span>
+                                    <span className="font-medium text-sm truncate">{result.name}</span>
+                                  </div>
+                                  {result.address && (
+                                    <p className="text-xs text-gray-400 mt-0.5 truncate">{result.address}</p>
+                                  )}
+                                </div>
+                                <Plus size={16} className="text-blue-500 shrink-0 ml-2" />
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {searchResults.length === 0 && searchQuery && !searching && (
+                        <p className="text-center text-sm text-gray-400 py-2">{t('explore.noResults')}</p>
+                      )}
+                    </div>
                   )}
                 </div>
-                {place.place_rating && (
-                  <span className="text-xs text-yellow-500">★ {place.place_rating.toFixed(1)}</span>
-                )}
-                <button
-                  onClick={function() { handleRemovePlace(place.id); }}
-                  className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg"
-                >
-                  <Trash2 size={14} />
-                </button>
-              </div>
-            );
-          })}
-        </div>
-      )}
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* 일자 추가 버튼 */}
+      <button
+        onClick={handleAddDay}
+        className="flex items-center gap-2 w-full mt-4 p-3 border-2 border-dashed border-gray-300 rounded-2xl text-gray-500 hover:border-blue-400 hover:text-blue-600 transition justify-center font-medium"
+      >
+        <Calendar size={18} />
+        {labels.addDay[locale]}
+      </button>
     </div>
   );
 }
