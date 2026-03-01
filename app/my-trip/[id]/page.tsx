@@ -78,35 +78,41 @@ export default function CourseDetailPage() {
   }, [courseId]);
 
   useEffect(function() {
-    if (!showMap || !mapContainerRef.current || !course) return;
+    if (!showMap || !course) return;
 
-    if (mapInstanceRef2.current) {
-      drawRoute(mapInstanceRef2.current, course);
-      return;
-    }
+    var timer = setTimeout(function() {
+      if (!mapContainerRef.current) return;
 
-    async function initMap() {
-      try {
-        await loadGoogleMaps();
-        if (!mapContainerRef.current) return;
-        var google = (window as any).google;
-
-        var map = new google.maps.Map(mapContainerRef.current, {
-          center: { lat: 37.5665, lng: 126.978 },
-          zoom: 13,
-          mapTypeControl: false,
-          streetViewControl: false,
-          fullscreenControl: false,
-        });
-
-        mapInstanceRef2.current = map;
-        drawRoute(map, course!);
-      } catch (err) {
-        console.error('Map error:', err);
+      if (mapInstanceRef2.current) {
+        drawRoute(mapInstanceRef2.current, course);
+        return;
       }
-    }
 
-    initMap();
+      async function initMap() {
+        try {
+          await loadGoogleMaps();
+          if (!mapContainerRef.current) return;
+          var google = (window as any).google;
+
+          var map = new google.maps.Map(mapContainerRef.current, {
+            center: { lat: 37.5665, lng: 126.978 },
+            zoom: 13,
+            mapTypeControl: false,
+            streetViewControl: false,
+            fullscreenControl: false,
+          });
+
+          mapInstanceRef2.current = map;
+          drawRoute(map, course!);
+        } catch (err) {
+          console.error('Map error:', err);
+        }
+      }
+
+      initMap();
+    }, 100);
+
+    return function() { clearTimeout(timer); };
   }, [showMap, course]);
 
   function drawRoute(map: any, courseData: Course) {
