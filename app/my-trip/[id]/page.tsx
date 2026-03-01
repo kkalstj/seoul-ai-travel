@@ -119,12 +119,8 @@ export default function CourseDetailPage() {
     var google = (window as any).google;
     if (!google) return;
 
-    mapRenderersRef.current.forEach(function(r) { r.setMap(null); });
-    mapRenderersRef.current = [];
-
     var places = courseData.places.filter(function(p) { return p.place_latitude && p.place_longitude; });
     console.log('Total places:', courseData.places.length, 'With coords:', places.length);
-    console.log('Places:', JSON.stringify(places.map(function(p) { return { name: p.place_name, lat: p.place_latitude, lng: p.place_longitude }; })));
     if (places.length === 0) return;
 
     var bounds = new google.maps.LatLngBounds();
@@ -135,8 +131,10 @@ export default function CourseDetailPage() {
     };
 
     places.forEach(function(place, i) {
-      var pos = { lat: place.place_latitude!, lng: place.place_longitude! };
+      var pos = { lat: Number(place.place_latitude), lng: Number(place.place_longitude) };
       var color = typeColors[place.place_type] || '#8B5CF6';
+
+      console.log('Marker ' + (i + 1) + ':', place.place_name, pos);
 
       new google.maps.Marker({
         position: pos,
@@ -150,38 +148,9 @@ export default function CourseDetailPage() {
     });
 
     if (places.length > 1) {
-      var directionsService = new google.maps.DirectionsService();
-      var newRenderers: any[] = [];
-
-      for (var i = 0; i < places.length - 1; i++) {
-        (function(origin, destination, index) {
-          var renderer = new google.maps.DirectionsRenderer({
-            map: map,
-            suppressMarkers: true,
-            polylineOptions: { strokeColor: '#4285F4', strokeWeight: 4, strokeOpacity: 0.7 },
-          });
-          newRenderers.push(renderer);
-
-          directionsService.route(
-            {
-              origin: new google.maps.LatLng(origin.place_latitude!, origin.place_longitude!),
-              destination: new google.maps.LatLng(destination.place_latitude!, destination.place_longitude!),
-              travelMode: google.maps.TravelMode.TRANSIT,
-              region: 'kr',
-            },
-            function(result: any, status: any) {
-              if (status === 'OK') {
-                renderer.setDirections(result);
-              }
-            }
-          );
-        })(places[i], places[i + 1], i);
-      }
-
-      mapRenderersRef.current = newRenderers;
       map.fitBounds(bounds, { padding: 50 });
     } else {
-      map.setCenter({ lat: places[0].place_latitude!, lng: places[0].place_longitude! });
+      map.setCenter({ lat: Number(places[0].place_latitude), lng: Number(places[0].place_longitude) });
       map.setZoom(15);
     }
   }
