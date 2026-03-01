@@ -1,7 +1,7 @@
 'use client';
 
 import { useLanguage } from '@/lib/i18n/LanguageContext';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, Plus, Trash2, MapPin, Share2, Search, Calendar, ChevronDown, ChevronUp, Map } from 'lucide-react';
 import { getCourseDetail, removePlaceFromCourse, addPlaceToCourse, updateCourse } from '@/lib/supabase/courses';
@@ -68,23 +68,30 @@ export default function CourseDetailPage() {
   var [searchResults, setSearchResults] = useState<any[]>([]);
   var [searching, setSearching] = useState(false);
   var [collapsedDays, setCollapsedDays] = useState<Record<number, boolean>>({});
-  var [mapContainer, setMapContainer] = useState<HTMLDivElement | null>(null);
-  var [mapInstance, setMapInstance] = useState<any>(null);
-  var [mapRenderers, setMapRenderers] = useState<any[]>([]);
+  var [extraDays, setExtraDays] = useState<number[]>([]);
+  var mapContainerRef = useRef<HTMLDivElement>(null);
+  var mapInstanceRef2 = useRef<any>(null);
+  var mapRenderersRef = useRef<any[]>([]);
 
   useEffect(function() {
     loadCourse();
   }, [courseId]);
 
   useEffect(function() {
-    if (!showMap || !mapContainer || !course) return;
+    if (!showMap || !mapContainerRef.current || !course) return;
+
+    if (mapInstanceRef2.current) {
+      drawRoute(mapInstanceRef2.current, course);
+      return;
+    }
 
     async function initMap() {
       try {
         await loadGoogleMaps();
+        if (!mapContainerRef.current) return;
         var google = (window as any).google;
 
-        var map = new google.maps.Map(mapContainer, {
+        var map = new google.maps.Map(mapContainerRef.current, {
           center: { lat: 37.5665, lng: 126.978 },
           zoom: 13,
           mapTypeControl: false,
@@ -92,7 +99,7 @@ export default function CourseDetailPage() {
           fullscreenControl: false,
         });
 
-        setMapInstance(map);
+        mapInstanceRef2.current = map;
         drawRoute(map, course!);
       } catch (err) {
         console.error('Map error:', err);
@@ -100,13 +107,14 @@ export default function CourseDetailPage() {
     }
 
     initMap();
-  }, [showMap, mapContainer, course]);
+  }, [showMap, course]);
 
   function drawRoute(map: any, courseData: Course) {
     var google = (window as any).google;
     if (!google) return;
 
-    mapRenderers.forEach(function(r) { r.setMap(null); });
+    mapRenderersRef.current.forEach(function(r) { r.setMap(null); });
+    mapRenderersRef.current = [];
 
     var places = courseData.places.filter(function(p) { return p.place_latitude && p.place_longitude; });
     if (places.length === 0) return;
@@ -162,7 +170,7 @@ export default function CourseDetailPage() {
         })(places[i], places[i + 1], i);
       }
 
-      setMapRenderers(newRenderers);
+      mapRenderersRef.current = newRenderers;
       map.fitBounds(bounds, { padding: 50 });
     } else {
       map.setCenter({ lat: places[0].place_latitude!, lng: places[0].place_longitude! });
@@ -188,6 +196,9 @@ export default function CourseDetailPage() {
     course.places.forEach(function(p) {
       if (days.indexOf(p.day_number) === -1) days.push(p.day_number);
     });
+    extraDays.forEach(function(d) {
+      if (days.indexOf(d) === -1) days.push(d);
+    });
     if (days.length === 0) days.push(1);
     days.sort(function(a, b) { return a - b; });
     return days;
@@ -200,10 +211,11 @@ export default function CourseDetailPage() {
       .sort(function(a, b) { return a.order_index - b.order_index; });
   }
 
-  async function handleAddDay() {
+  function handleAddDay() {
     if (!course) return;
     var days = getDays();
     var newDay = days[days.length - 1] + 1;
+    setExtraDays(function(prev) { return [...prev, newDay]; });
     setCollapsedDays(function(prev) { var next = { ...prev }; next[newDay] = false; return next; });
     setSearchDay(newDay);
   }
@@ -221,9 +233,9 @@ export default function CourseDetailPage() {
     for (var i = 0; i < dayPlaces.length; i++) {
       await removePlaceFromCourse(dayPlaces[i].id);
     }
+    setExtraDays(function(prev) { return prev.filter(function(d) { return d !== day; }); });
     await loadCourse();
   }
-
   async function handleSearch() {
     if (!searchQuery.trim()) return;
     setSearching(true);
@@ -436,7 +448,7 @@ export default function CourseDetailPage() {
         </button>
         {showMap && (
           <div className="mt-3 rounded-2xl overflow-hidden border shadow-sm">
-            <div ref={function(el) { setMapContainer(el); }} style={{ height: '350px', width: '100%' }} />
+            <div ref={mapContainerRef} style={{ height: '350px', width: '100%' }} />
           </div>
         )}
       </div>
