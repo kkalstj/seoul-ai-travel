@@ -537,14 +537,17 @@ export default function CourseDetailPage() {
                                        step.vehicle === 'BUS' ? '🚌' :
                                        step.vehicle === 'HEAVY_RAIL' ? '🚆' : '🚍';
                             return (
-                              <div key={si} className="flex items-center gap-1 text-xs">
+                              <div key={si} className="flex items-center gap-1.5 text-xs flex-wrap">
                                 <span
                                   className="px-2 py-0.5 rounded-full font-bold"
                                   style={{ backgroundColor: step.color, color: step.textColor }}
                                 >
                                   {icon} {step.name}
                                 </span>
-                                <span className="text-gray-400">{step.numStops}{locale === 'ko' ? '정거장' : locale === 'ja' ? '駅' : locale === 'zh' ? '站' : ' stops'}</span>
+                                <span className="text-gray-500">
+                                  {step.departure} → {step.arrival}
+                                </span>
+                                <span className="text-gray-400">({step.numStops}{locale === 'ko' ? '정거장' : locale === 'ja' ? '駅' : locale === 'zh' ? '站' : ' stops'})</span>
                               </div>
                             );
                           })}
