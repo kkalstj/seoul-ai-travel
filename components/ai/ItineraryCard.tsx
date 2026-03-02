@@ -103,13 +103,13 @@ export default function ItineraryCard({ itinerary }: ItineraryCardProps) {
                   'X-Goog-Api-Key': process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY || '',
                   'X-Goog-FieldMask': 'places.displayName,places.location,places.formattedAddress',
                 },
-                body: JSON.stringify({
-                  textQuery: placeName + ' 서울',
+               body: JSON.stringify({
+                  textQuery: placeName,
                   languageCode: 'ko',
-                  locationBias: {
-                    circle: {
-                      center: { latitude: 37.5665, longitude: 126.978 },
-                      radius: 20000,
+                  locationRestriction: {
+                    rectangle: {
+                      low: { latitude: 37.4, longitude: 126.8 },
+                      high: { latitude: 37.7, longitude: 127.2 },
                     },
                   },
                   maxResultCount: 1,
@@ -255,6 +255,7 @@ export default function ItineraryCard({ itinerary }: ItineraryCardProps) {
     </div>
   );
 }
+
 
 
 
