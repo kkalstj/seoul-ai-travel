@@ -68,7 +68,7 @@ export default function CourseDetailPage() {
   var [searchResults, setSearchResults] = useState<any[]>([]);
   var [searching, setSearching] = useState(false);
   var [collapsedDays, setCollapsedDays] = useState<Record<number, boolean>>({});
-  var [extraDays, setExtraDays] = useState<number[]>([]);
+  var [maxDay, setMaxDay] = useState<number>(1);
   var mapContainerRef = useRef<HTMLDivElement>(null);
   var mapInstanceRef2 = useRef<any>(null);
   var mapRenderersRef = useRef<any[]>([]);
@@ -195,11 +195,16 @@ export default function CourseDetailPage() {
     }
   }
 
-  async function loadCourse() {
+ async function loadCourse() {
     try {
       var data = await getCourseDetail(courseId);
       setCourse(data);
       setTitleInput(data.title);
+      var highest = 1;
+      data.places.forEach(function(p: any) {
+        if (p.day_number > highest) highest = p.day_number;
+      });
+      setMaxDay(function(prev) { return Math.max(prev, highest); });
     } catch (err) {
       console.error('코스 로드 실패:', err);
     } finally {
@@ -207,17 +212,11 @@ export default function CourseDetailPage() {
     }
   }
 
-  function getDays(): number[] {
-    if (!course) return [1];
+ function getDays(): number[] {
     var days: number[] = [];
-    course.places.forEach(function(p) {
-      if (days.indexOf(p.day_number) === -1) days.push(p.day_number);
-    });
-    extraDays.forEach(function(d) {
-      if (days.indexOf(d) === -1) days.push(d);
-    });
-    if (days.length === 0) days.push(1);
-    days.sort(function(a, b) { return a - b; });
+    for (var i = 1; i <= maxDay; i++) {
+      days.push(i);
+    }
     return days;
   }
 
@@ -229,12 +228,9 @@ export default function CourseDetailPage() {
   }
 
   function handleAddDay() {
-    if (!course) return;
-    var days = getDays();
-    var newDay = days[days.length - 1] + 1;
-    setExtraDays(function(prev) { return [...prev, newDay]; });
+    var newDay = maxDay + 1;
+    setMaxDay(newDay);
     setCollapsedDays(function(prev) { var next = { ...prev }; next[newDay] = false; return next; });
-    setSearchDay(newDay);
   }
 
   async function handleRemoveDay(day: number) {
@@ -250,20 +246,17 @@ export default function CourseDetailPage() {
     for (var i = 0; i < dayPlaces.length; i++) {
       await removePlaceFromCourse(dayPlaces[i].id);
     }
-    setExtraDays(function(prev) { return prev.filter(function(d) { return d !== day; }); });
 
-    var remainingDays = getDays().filter(function(d) { return d !== day; }).sort(function(a, b) { return a - b; });
-    for (var d = 0; d < remainingDays.length; d++) {
-      var newDayNumber = d + 1;
-      if (remainingDays[d] !== newDayNumber) {
-        var placesToUpdate = course!.places.filter(function(p) { return p.day_number === remainingDays[d]; });
-        for (var j = 0; j < placesToUpdate.length; j++) {
-          await supabase.from('course_places').update({ day_number: newDayNumber }).eq('id', placesToUpdate[j].id);
-        }
+    var allPlaces = course.places.filter(function(p) { return p.day_number !== day; });
+    for (var j = 0; j < allPlaces.length; j++) {
+      var oldDay = allPlaces[j].day_number;
+      var newDay = oldDay > day ? oldDay - 1 : oldDay;
+      if (oldDay !== newDay) {
+        await supabase.from('course_places').update({ day_number: newDay }).eq('id', allPlaces[j].id);
       }
     }
 
-    setExtraDays([]);
+    setMaxDay(function(prev) { return Math.max(1, prev - 1); });
     await loadCourse();
   }
   async function handleSearch() {
