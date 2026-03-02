@@ -72,6 +72,7 @@ export default function CourseDetailPage() {
   var mapContainerRef = useRef<HTMLDivElement>(null);
   var mapInstanceRef2 = useRef<any>(null);
   var mapRenderersRef = useRef<any[]>([]);
+  var mapMarkersRef = useRef<any[]>([]);
 
   useEffect(function() {
     loadCourse();
@@ -103,7 +104,7 @@ export default function CourseDetailPage() {
           });
 
           mapInstanceRef2.current = map;
-          drawRoute(map, course!);
+          drawRoute(map, course);
         } catch (err) {
           console.error('Map error:', err);
         }
@@ -119,8 +120,13 @@ export default function CourseDetailPage() {
     var google = (window as any).google;
     if (!google) return;
 
+    mapMarkersRef.current.forEach(function(m) { m.setMap(null); });
+    mapMarkersRef.current = [];
+
+    mapRenderersRef.current.forEach(function(r) { r.setMap(null); });
+    mapRenderersRef.current = [];
+
     var places = courseData.places.filter(function(p) { return p.place_latitude && p.place_longitude; });
-    console.log('Total places:', courseData.places.length, 'With coords:', places.length);
     if (places.length === 0) return;
 
     var bounds = new google.maps.LatLngBounds();
@@ -134,9 +140,7 @@ export default function CourseDetailPage() {
       var pos = { lat: Number(place.place_latitude), lng: Number(place.place_longitude) };
       var color = typeColors[place.place_type] || '#8B5CF6';
 
-      console.log('Marker ' + (i + 1) + ':', place.place_name, pos);
-
-      new google.maps.Marker({
+      var marker = new google.maps.Marker({
         position: pos,
         map: map,
         label: { text: String(i + 1), color: 'white', fontWeight: 'bold', fontSize: '11px' },
@@ -144,10 +148,46 @@ export default function CourseDetailPage() {
         title: place.place_name,
       });
 
+      var infoWindow = new google.maps.InfoWindow({
+        content: '<div style="font-size:13px;font-weight:bold;padding:4px;">' + (i + 1) + '. ' + place.place_name + '</div>',
+      });
+
+      (function(m, iw) {
+        m.addListener('click', function() { iw.open(map, m); });
+      })(marker, infoWindow);
+
+      mapMarkersRef.current.push(marker);
       bounds.extend(pos);
     });
 
     if (places.length > 1) {
+      var directionsService = new google.maps.DirectionsService();
+
+      for (var i = 0; i < places.length - 1; i++) {
+        (function(origin, destination, index) {
+          var renderer = new google.maps.DirectionsRenderer({
+            map: map,
+            suppressMarkers: true,
+            polylineOptions: { strokeColor: '#4285F4', strokeWeight: 4, strokeOpacity: 0.7 },
+          });
+          mapRenderersRef.current.push(renderer);
+
+          directionsService.route(
+            {
+              origin: new google.maps.LatLng(Number(origin.place_latitude), Number(origin.place_longitude)),
+              destination: new google.maps.LatLng(Number(destination.place_latitude), Number(destination.place_longitude)),
+              travelMode: google.maps.TravelMode.TRANSIT,
+              region: 'kr',
+            },
+            function(result: any, status: any) {
+              if (status === 'OK') {
+                renderer.setDirections(result);
+              }
+            }
+          );
+        })(places[i], places[i + 1], i);
+      }
+
       map.fitBounds(bounds, { padding: 50 });
     } else {
       map.setCenter({ lat: Number(places[0].place_latitude), lng: Number(places[0].place_longitude) });
