@@ -90,14 +90,6 @@ export async function uploadAvatar(userId: string, file: File) {
   return data.publicUrl;
 }
 
-// 비밀번호 재설정 이메일 발송
-export async function resetPassword(email: string) {
-  var { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: window.location.origin + '/auth/reset-password',
-  });
-  if (error) throw error;
-}
-
 // 비밀번호 변경 (기존 비밀번호 확인 포함)
 export async function changePassword(currentPassword: string, newPassword: string) {
   // 1) 기존 비밀번호 확인 - 현재 이메일로 로그인 시도
