@@ -9,6 +9,7 @@ import { signOut, getProfile, updateProfile, uploadAvatar, resetPassword, update
 import { getMyFavorites } from '@/lib/supabase/interactions';
 import { getMyReviews } from '@/lib/supabase/interactions';
 import ReviewModal from '@/components/reviews/ReviewModal';
+import { signOut, getProfile, updateProfile, changePassword } from '@/lib/supabase/auth';
 
 export default function ProfilePage() {
   var { t, locale } = useLanguage();
@@ -31,6 +32,13 @@ export default function ProfilePage() {
   var [passwordSuccess, setPasswordSuccess] = useState(false);
   var [changingPassword, setChangingPassword] = useState(false);
   var fileInputRef = useRef<HTMLInputElement>(null);
+  var [showPasswordChange, setShowPasswordChange] = useState(false);
+  var [currentPassword, setCurrentPassword] = useState('');
+  var [newPassword, setNewPassword] = useState('');
+  var [confirmPassword, setConfirmPassword] = useState('');
+  var [passwordLoading, setPasswordLoading] = useState(false);
+  var [passwordError, setPasswordError] = useState('');
+  var [passwordSuccess, setPasswordSuccess] = useState('');
 
   var labels: Record<string, Record<string, string>> = {
     changePhoto: { ko: '사진 변경', en: 'Change Photo', ja: '写真変更', zh: '更改照片' },
@@ -58,6 +66,41 @@ export default function ProfilePage() {
     }
   }, [user, authLoading]);
 
+  async function handlePasswordChange() {
+  setPasswordError('');
+  setPasswordSuccess('');
+
+  if (newPassword.length < 6) {
+    setPasswordError('새 비밀번호는 6자 이상이어야 합니다');
+    return;
+  }
+  if (newPassword !== confirmPassword) {
+    setPasswordError('새 비밀번호가 일치하지 않습니다');
+    return;
+  }
+  if (currentPassword === newPassword) {
+    setPasswordError('현재 비밀번호와 다른 비밀번호를 입력해주세요');
+    return;
+  }
+
+  setPasswordLoading(true);
+  try {
+    await changePassword(currentPassword, newPassword);
+    setPasswordSuccess('비밀번호가 변경되었습니다!');
+    setCurrentPassword('');
+    setNewPassword('');
+    setConfirmPassword('');
+    setTimeout(function() {
+      setShowPasswordChange(false);
+      setPasswordSuccess('');
+    }, 2000);
+  } catch (err: any) {
+    setPasswordError(err.message);
+  } finally {
+    setPasswordLoading(false);
+  }
+}
+  
   async function loadData() {
     try {
       var profileData = await getProfile(user.id);
@@ -178,6 +221,61 @@ export default function ProfilePage() {
       {/* 프로필 카드 */}
       <div className="bg-white rounded-2xl p-6 shadow-sm border mb-6">
         <div className="flex items-center gap-4">
+          {/* 비밀번호 변경 */}
+<div className="bg-white rounded-2xl shadow-sm border mb-6 overflow-hidden">
+  <button
+    onClick={function() { setShowPasswordChange(!showPasswordChange); setPasswordError(''); setPasswordSuccess(''); }}
+    className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition"
+  >
+    <div className="flex items-center gap-2">
+      <Lock size={16} className="text-gray-500" />
+      <span className="text-sm font-medium text-gray-700">비밀번호 변경</span>
+    </div>
+    <span className="text-xs text-gray-400">{showPasswordChange ? '닫기' : '열기'}</span>
+  </button>
+
+  {showPasswordChange && (
+    <div className="px-4 pb-4 space-y-3">
+      <input
+        type="password"
+        value={currentPassword}
+        onChange={function(e) { setCurrentPassword(e.target.value); }}
+        placeholder="현재 비밀번호"
+        className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
+      <input
+        type="password"
+        value={newPassword}
+        onChange={function(e) { setNewPassword(e.target.value); }}
+        placeholder="새 비밀번호 (6자 이상)"
+        className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
+      <input
+        type="password"
+        value={confirmPassword}
+        onChange={function(e) { setConfirmPassword(e.target.value); }}
+        onKeyDown={function(e) { if (e.key === 'Enter') handlePasswordChange(); }}
+        placeholder="새 비밀번호 확인"
+        className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
+
+      {passwordError && (
+        <p className="text-xs text-red-500">{passwordError}</p>
+      )}
+      {passwordSuccess && (
+        <p className="text-xs text-green-500">{passwordSuccess}</p>
+      )}
+
+      <button
+        onClick={handlePasswordChange}
+        disabled={passwordLoading || !currentPassword || !newPassword || !confirmPassword}
+        className="w-full py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50 transition"
+      >
+        {passwordLoading ? '변경 중...' : '비밀번호 변경'}
+      </button>
+    </div>
+  )}
+</div>
           {/* 프로필 사진 */}
           <div className="relative">
             <div className="w-16 h-16 rounded-full overflow-hidden bg-blue-100 flex items-center justify-center">
