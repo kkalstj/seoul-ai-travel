@@ -73,6 +73,7 @@ export default function CourseDetailPage() {
   var mapInstanceRef2 = useRef<any>(null);
   var mapRenderersRef = useRef<any[]>([]);
   var mapMarkersRef = useRef<any[]>([]);
+  var [transitInfo, setTransitInfo] = useState<any[]>([]);
 
   useEffect(function() {
     loadCourse();
@@ -162,6 +163,9 @@ export default function CourseDetailPage() {
 
     if (places.length > 1) {
       var directionsService = new google.maps.DirectionsService();
+      var totalSegments = places.length - 1;
+      var infoResults: any[] = new Array(totalSegments).fill(null);
+      var completed = 0;
 
       for (var i = 0; i < places.length - 1; i++) {
         (function(origin, destination, index) {
@@ -182,6 +186,46 @@ export default function CourseDetailPage() {
             function(result: any, status: any) {
               if (status === 'OK') {
                 renderer.setDirections(result);
+
+                var leg = result.routes[0].legs[0];
+                var steps = leg.steps || [];
+                var transitSteps: any[] = [];
+
+                steps.forEach(function(step: any) {
+                  if (step.travel_mode === 'TRANSIT') {
+                    var line = step.transit.line;
+                    transitSteps.push({
+                      vehicle: line.vehicle.type,
+                      name: line.short_name || line.name,
+                      color: line.color || '#4285F4',
+                      textColor: line.text_color || '#FFFFFF',
+                      numStops: step.transit.num_stops,
+                      departure: step.transit.departure_stop.name,
+                      arrival: step.transit.arrival_stop.name,
+                    });
+                  }
+                });
+
+                infoResults[index] = {
+                  from: origin.place_name,
+                  to: destination.place_name,
+                  duration: leg.duration.text,
+                  distance: leg.distance.text,
+                  steps: transitSteps,
+                };
+              } else {
+                infoResults[index] = {
+                  from: origin.place_name,
+                  to: destination.place_name,
+                  duration: null,
+                  distance: null,
+                  steps: [],
+                };
+              }
+
+              completed++;
+              if (completed === totalSegments) {
+                setTransitInfo(infoResults);
               }
             }
           );
@@ -472,6 +516,49 @@ export default function CourseDetailPage() {
         {showMap && (
           <div className="mt-3 rounded-2xl overflow-hidden border shadow-sm">
             <div ref={mapContainerRef} style={{ height: '350px', width: '100%' }} />
+            {transitInfo.length > 0 && (
+              <div className="p-3 space-y-2 bg-gray-50 max-h-60 overflow-y-auto">
+                {transitInfo.map(function(info, idx) {
+                  if (!info) return null;
+                  return (
+                    <div key={idx} className="bg-white rounded-xl p-3 border">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-bold text-gray-700">
+                          {info.from} → {info.to}
+                        </span>
+                        {info.duration && (
+                          <span className="text-xs text-blue-600 font-semibold">{info.duration}</span>
+                        )}
+                      </div>
+                      {info.steps.length > 0 ? (
+                        <div className="flex flex-wrap gap-1.5">
+                          {info.steps.map(function(step: any, si: number) {
+                            var icon = step.vehicle === 'SUBWAY' ? '🚇' :
+                                       step.vehicle === 'BUS' ? '🚌' :
+                                       step.vehicle === 'HEAVY_RAIL' ? '🚆' : '🚍';
+                            return (
+                              <div key={si} className="flex items-center gap-1 text-xs">
+                                <span
+                                  className="px-2 py-0.5 rounded-full font-bold"
+                                  style={{ backgroundColor: step.color, color: step.textColor }}
+                                >
+                                  {icon} {step.name}
+                                </span>
+                                <span className="text-gray-400">{step.numStops}{locale === 'ko' ? '정거장' : locale === 'ja' ? '駅' : locale === 'zh' ? '站' : ' stops'}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <span className="text-xs text-gray-400">
+                          {info.duration ? (locale === 'ko' ? '도보 이동' : locale === 'ja' ? '徒歩移動' : locale === 'zh' ? '步行' : 'Walking') : (locale === 'ko' ? '경로 정보 없음' : 'No route info')}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
       </div>
