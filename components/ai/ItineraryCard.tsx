@@ -94,17 +94,36 @@ export default function ItineraryCard({ itinerary }: ItineraryCardProps) {
             }
           }
 
-          if (!lat || !lng) {
+         if (!lat || !lng) {
             try {
-              var geoRes = await fetch('https://maps.googleapis.com/maps/api/geocode/json?address=' + encodeURIComponent(placeName + ' 서울') + '&key=' + process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY + '&region=kr&language=ko');
-              var geoData = await geoRes.json();
-              if (geoData.results && geoData.results.length > 0) {
-                lat = geoData.results[0].geometry.location.lat;
-                lng = geoData.results[0].geometry.location.lng;
-                addr = addr || geoData.results[0].formatted_address;
+              var placeRes = await fetch('https://places.googleapis.com/v1/places:searchText', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'X-Goog-Api-Key': process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY || '',
+                  'X-Goog-FieldMask': 'places.displayName,places.location,places.formattedAddress',
+                },
+                body: JSON.stringify({
+                  textQuery: placeName + ' 서울',
+                  languageCode: 'ko',
+                  locationBias: {
+                    circle: {
+                      center: { latitude: 37.5665, longitude: 126.978 },
+                      radius: 20000,
+                    },
+                  },
+                  maxResultCount: 1,
+                }),
+              });
+              var placeData = await placeRes.json();
+              if (placeData.places && placeData.places.length > 0) {
+                var found = placeData.places[0];
+                lat = found.location.latitude;
+                lng = found.location.longitude;
+                addr = addr || found.formattedAddress;
               }
-            } catch (geoErr) {
-              console.error('Geocoding failed for:', placeName, geoErr);
+            } catch (placeErr) {
+              console.error('Places search failed for:', placeName, placeErr);
             }
           }
 
@@ -236,5 +255,6 @@ export default function ItineraryCard({ itinerary }: ItineraryCardProps) {
     </div>
   );
 }
+
 
 
