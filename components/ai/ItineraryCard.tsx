@@ -94,6 +94,20 @@ export default function ItineraryCard({ itinerary }: ItineraryCardProps) {
             }
           }
 
+          if (!lat || !lng) {
+            try {
+              var geoRes = await fetch('https://maps.googleapis.com/maps/api/geocode/json?address=' + encodeURIComponent(placeName + ' 서울') + '&key=' + process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY + '&region=kr&language=ko');
+              var geoData = await geoRes.json();
+              if (geoData.results && geoData.results.length > 0) {
+                lat = geoData.results[0].geometry.location.lat;
+                lng = geoData.results[0].geometry.location.lng;
+                addr = addr || geoData.results[0].formatted_address;
+              }
+            } catch (geoErr) {
+              console.error('Geocoding failed for:', placeName, geoErr);
+            }
+          }
+
           places.push({
             place_type: place.type || 'attraction',
             place_name: place.name,
@@ -222,4 +236,5 @@ export default function ItineraryCard({ itinerary }: ItineraryCardProps) {
     </div>
   );
 }
+
 
