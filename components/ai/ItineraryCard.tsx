@@ -14,6 +14,7 @@ import {
   Check,
 } from 'lucide-react';
 import { saveAICourse } from '@/lib/supabase/courses';
+import { supabase } from '@/lib/supabase/client';
 
 interface Place {
   name: string;
@@ -62,21 +63,50 @@ export default function ItineraryCard({ itinerary }: ItineraryCardProps) {
 
     try {
       var places: any[] = [];
-      itinerary.days.forEach(function(day) {
-        day.places.forEach(function(place) {
+
+      for (var d = 0; d < itinerary.days.length; d++) {
+        var day = itinerary.days[d];
+        for (var p = 0; p < day.places.length; p++) {
+          var place = day.places[p];
+          var placeName = place.name.replace(/\s*\(.*?\)\s*/g, '').trim();
+          var lat = place.latitude || null;
+          var lng = place.longitude || null;
+          var addr = place.address || null;
+          var rating = place.rating || null;
+          var category = place.category || null;
+
+          if (!lat || !lng) {
+            var tables = ['restaurants', 'accommodations', 'attractions'];
+            for (var ti = 0; ti < tables.length; ti++) {
+              var { data } = await supabase
+                .from(tables[ti])
+                .select('name, address, latitude, longitude, rating')
+                .ilike('name', '%' + placeName + '%')
+                .limit(1);
+
+              if (data && data.length > 0 && data[0].latitude && data[0].longitude) {
+                lat = data[0].latitude;
+                lng = data[0].longitude;
+                addr = addr || data[0].address;
+                rating = rating || data[0].rating;
+                break;
+              }
+            }
+          }
+
           places.push({
             place_type: place.type || 'attraction',
             place_name: place.name,
-            place_address: place.address || null,
-            place_latitude: place.latitude || null,
-            place_longitude: place.longitude || null,
-            place_rating: place.rating || null,
-            place_category: place.category || null,
+            place_address: addr,
+            place_latitude: lat,
+            place_longitude: lng,
+            place_rating: rating,
+            place_category: category,
             day_number: day.day,
             memo: place.tip || null,
           });
-        });
-      });
+        }
+      }
 
       await saveAICourse(itinerary.title || 'AI 추천 코스', places);
       setSaved(true);
@@ -192,3 +222,4 @@ export default function ItineraryCard({ itinerary }: ItineraryCardProps) {
     </div>
   );
 }
+
