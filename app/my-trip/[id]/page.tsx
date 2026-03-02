@@ -251,6 +251,19 @@ export default function CourseDetailPage() {
       await removePlaceFromCourse(dayPlaces[i].id);
     }
     setExtraDays(function(prev) { return prev.filter(function(d) { return d !== day; }); });
+
+    var remainingDays = getDays().filter(function(d) { return d !== day; }).sort(function(a, b) { return a - b; });
+    for (var d = 0; d < remainingDays.length; d++) {
+      var newDayNumber = d + 1;
+      if (remainingDays[d] !== newDayNumber) {
+        var placesToUpdate = course!.places.filter(function(p) { return p.day_number === remainingDays[d]; });
+        for (var j = 0; j < placesToUpdate.length; j++) {
+          await supabase.from('course_places').update({ day_number: newDayNumber }).eq('id', placesToUpdate[j].id);
+        }
+      }
+    }
+
+    setExtraDays([]);
     await loadCourse();
   }
   async function handleSearch() {
