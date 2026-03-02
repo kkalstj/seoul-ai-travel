@@ -50,6 +50,13 @@ export async function getProfile(userId: string) {
   return data;
 }
 
+export async function resetPassword(email: string) {
+  var { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + '/auth/reset',
+  });
+  if (error) throw error;
+}
+
 // 프로필 수정
 export async function updateProfile(userId: string, updates: { nickname?: string; avatar_url?: string }) {
   var { data, error } = await supabase
