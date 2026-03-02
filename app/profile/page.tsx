@@ -5,11 +5,9 @@ import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { User, Heart, Star, LogOut, Edit2, Check, Camera, Lock, X } from 'lucide-react';
 import { useAuth } from '@/components/auth/AuthProvider';
-import { signOut, getProfile, updateProfile, uploadAvatar, resetPassword, updatePassword } from '@/lib/supabase/auth';
-import { getMyFavorites } from '@/lib/supabase/interactions';
-import { getMyReviews } from '@/lib/supabase/interactions';
+import { signOut, getProfile, updateProfile, uploadAvatar, changePassword } from '@/lib/supabase/auth';
+import { getMyFavorites, getMyReviews } from '@/lib/supabase/interactions';
 import ReviewModal from '@/components/reviews/ReviewModal';
-import { signOut, getProfile, updateProfile, changePassword } from '@/lib/supabase/auth';
 
 export default function ProfilePage() {
   var { t, locale } = useLanguage();
@@ -24,6 +22,9 @@ export default function ProfilePage() {
   var [activeTab, setActiveTab] = useState<'favorites' | 'reviews'>('favorites');
   var [reviewModal, setReviewModal] = useState<any>(null);
   var [uploadingAvatar, setUploadingAvatar] = useState(false);
+  var fileInputRef = useRef<HTMLInputElement>(null);
+
+  // 비밀번호 변경 관련 state
   var [showPasswordModal, setShowPasswordModal] = useState(false);
   var [currentPassword, setCurrentPassword] = useState('');
   var [newPassword, setNewPassword] = useState('');
@@ -31,14 +32,6 @@ export default function ProfilePage() {
   var [passwordError, setPasswordError] = useState('');
   var [passwordSuccess, setPasswordSuccess] = useState(false);
   var [changingPassword, setChangingPassword] = useState(false);
-  var fileInputRef = useRef<HTMLInputElement>(null);
-  var [showPasswordChange, setShowPasswordChange] = useState(false);
-  var [currentPassword, setCurrentPassword] = useState('');
-  var [newPassword, setNewPassword] = useState('');
-  var [confirmPassword, setConfirmPassword] = useState('');
-  var [passwordLoading, setPasswordLoading] = useState(false);
-  var [passwordError, setPasswordError] = useState('');
-  var [passwordSuccess, setPasswordSuccess] = useState('');
 
   var labels: Record<string, Record<string, string>> = {
     changePhoto: { ko: '사진 변경', en: 'Change Photo', ja: '写真変更', zh: '更改照片' },
@@ -50,8 +43,8 @@ export default function ProfilePage() {
     passwordTooShort: { ko: '비밀번호는 6자 이상이어야 합니다', en: 'Password must be at least 6 characters', ja: 'パスワードは6文字以上必要です', zh: '密码至少6个字符' },
     passwordChanged: { ko: '비밀번호가 변경되었습니다', en: 'Password changed successfully', ja: 'パスワードが変更されました', zh: '密码已更改' },
     passwordError: { ko: '비밀번호 변경 실패', en: 'Password change failed', ja: 'パスワード変更失敗', zh: '密码更改失败' },
-    forgotPassword: { ko: '비밀번호를 잊으셨나요?', en: 'Forgot password?', ja: 'パスワードをお忘れですか？', zh: '忘记密码？' },
-    resetEmailSent: { ko: '재설정 이메일이 발송되었습니다', en: 'Reset email sent', ja: 'リセットメールを送信しました', zh: '重置邮件已发送' },
+    wrongPassword: { ko: '현재 비밀번호가 올바르지 않습니다', en: 'Current password is incorrect', ja: '現在のパスワードが正しくありません', zh: '当前密码不正确' },
+    samePassword: { ko: '현재 비밀번호와 다른 비밀번호를 입력해주세요', en: 'New password must be different', ja: '現在と異なるパスワードを入力してください', zh: '新密码不能与当前密码相同' },
     save: { ko: '저장', en: 'Save', ja: '保存', zh: '保存' },
     cancel: { ko: '취소', en: 'Cancel', ja: 'キャンセル', zh: '取消' },
   };
@@ -66,41 +59,6 @@ export default function ProfilePage() {
     }
   }, [user, authLoading]);
 
-  async function handlePasswordChange() {
-  setPasswordError('');
-  setPasswordSuccess('');
-
-  if (newPassword.length < 6) {
-    setPasswordError('새 비밀번호는 6자 이상이어야 합니다');
-    return;
-  }
-  if (newPassword !== confirmPassword) {
-    setPasswordError('새 비밀번호가 일치하지 않습니다');
-    return;
-  }
-  if (currentPassword === newPassword) {
-    setPasswordError('현재 비밀번호와 다른 비밀번호를 입력해주세요');
-    return;
-  }
-
-  setPasswordLoading(true);
-  try {
-    await changePassword(currentPassword, newPassword);
-    setPasswordSuccess('비밀번호가 변경되었습니다!');
-    setCurrentPassword('');
-    setNewPassword('');
-    setConfirmPassword('');
-    setTimeout(function() {
-      setShowPasswordChange(false);
-      setPasswordSuccess('');
-    }, 2000);
-  } catch (err: any) {
-    setPasswordError(err.message);
-  } finally {
-    setPasswordLoading(false);
-  }
-}
-  
   async function loadData() {
     try {
       var profileData = await getProfile(user.id);
@@ -155,6 +113,10 @@ export default function ProfilePage() {
     setPasswordError('');
     setPasswordSuccess(false);
 
+    if (!currentPassword) {
+      setPasswordError(labels.currentPassword[locale]);
+      return;
+    }
     if (newPassword.length < 6) {
       setPasswordError(labels.passwordTooShort[locale]);
       return;
@@ -163,15 +125,22 @@ export default function ProfilePage() {
       setPasswordError(labels.passwordMismatch[locale]);
       return;
     }
+    if (currentPassword === newPassword) {
+      setPasswordError(labels.samePassword[locale]);
+      return;
+    }
 
     setChangingPassword(true);
     try {
-      await updatePassword(newPassword);
+      await changePassword(currentPassword, newPassword);
       setPasswordSuccess(true);
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
-      setTimeout(function() { setShowPasswordModal(false); setPasswordSuccess(false); }, 2000);
+      setTimeout(function() {
+        setShowPasswordModal(false);
+        setPasswordSuccess(false);
+      }, 2000);
     } catch (err: any) {
       setPasswordError(err.message || labels.passwordError[locale]);
     } finally {
@@ -179,14 +148,13 @@ export default function ProfilePage() {
     }
   }
 
-  async function handleForgotPassword() {
-    if (!user?.email) return;
-    try {
-      await resetPassword(user.email);
-      alert(labels.resetEmailSent[locale]);
-    } catch (err) {
-      console.error('비밀번호 재설정 실패:', err);
-    }
+  function closePasswordModal() {
+    setShowPasswordModal(false);
+    setPasswordError('');
+    setPasswordSuccess(false);
+    setCurrentPassword('');
+    setNewPassword('');
+    setConfirmPassword('');
   }
 
   async function handleSignOut() {
@@ -221,61 +189,6 @@ export default function ProfilePage() {
       {/* 프로필 카드 */}
       <div className="bg-white rounded-2xl p-6 shadow-sm border mb-6">
         <div className="flex items-center gap-4">
-          {/* 비밀번호 변경 */}
-<div className="bg-white rounded-2xl shadow-sm border mb-6 overflow-hidden">
-  <button
-    onClick={function() { setShowPasswordChange(!showPasswordChange); setPasswordError(''); setPasswordSuccess(''); }}
-    className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition"
-  >
-    <div className="flex items-center gap-2">
-      <Lock size={16} className="text-gray-500" />
-      <span className="text-sm font-medium text-gray-700">비밀번호 변경</span>
-    </div>
-    <span className="text-xs text-gray-400">{showPasswordChange ? '닫기' : '열기'}</span>
-  </button>
-
-  {showPasswordChange && (
-    <div className="px-4 pb-4 space-y-3">
-      <input
-        type="password"
-        value={currentPassword}
-        onChange={function(e) { setCurrentPassword(e.target.value); }}
-        placeholder="현재 비밀번호"
-        className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-      />
-      <input
-        type="password"
-        value={newPassword}
-        onChange={function(e) { setNewPassword(e.target.value); }}
-        placeholder="새 비밀번호 (6자 이상)"
-        className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-      />
-      <input
-        type="password"
-        value={confirmPassword}
-        onChange={function(e) { setConfirmPassword(e.target.value); }}
-        onKeyDown={function(e) { if (e.key === 'Enter') handlePasswordChange(); }}
-        placeholder="새 비밀번호 확인"
-        className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-      />
-
-      {passwordError && (
-        <p className="text-xs text-red-500">{passwordError}</p>
-      )}
-      {passwordSuccess && (
-        <p className="text-xs text-green-500">{passwordSuccess}</p>
-      )}
-
-      <button
-        onClick={handlePasswordChange}
-        disabled={passwordLoading || !currentPassword || !newPassword || !confirmPassword}
-        className="w-full py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50 transition"
-      >
-        {passwordLoading ? '변경 중...' : '비밀번호 변경'}
-      </button>
-    </div>
-  )}
-</div>
           {/* 프로필 사진 */}
           <div className="relative">
             <div className="w-16 h-16 rounded-full overflow-hidden bg-blue-100 flex items-center justify-center">
@@ -362,12 +275,22 @@ export default function ProfilePage() {
           <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold">{labels.changePassword[locale]}</h3>
-              <button onClick={function() { setShowPasswordModal(false); setPasswordError(''); setPasswordSuccess(false); }} className="p-1 text-gray-400 hover:text-gray-600">
+              <button onClick={closePasswordModal} className="p-1 text-gray-400 hover:text-gray-600">
                 <X size={20} />
               </button>
             </div>
 
             <div className="space-y-3">
+              <div>
+                <label className="text-sm text-gray-600 mb-1 block">{labels.currentPassword[locale]}</label>
+                <input
+                  type="password"
+                  value={currentPassword}
+                  onChange={function(e) { setCurrentPassword(e.target.value); }}
+                  placeholder="••••••"
+                  className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
               <div>
                 <label className="text-sm text-gray-600 mb-1 block">{labels.newPassword[locale]}</label>
                 <input
@@ -384,6 +307,7 @@ export default function ProfilePage() {
                   type="password"
                   value={confirmPassword}
                   onChange={function(e) { setConfirmPassword(e.target.value); }}
+                  onKeyDown={function(e) { if (e.key === 'Enter') handlePasswordChange(); }}
                   placeholder="••••••"
                   className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
@@ -402,13 +326,6 @@ export default function ProfilePage() {
                 className="w-full py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition"
               >
                 {changingPassword ? '...' : labels.save[locale]}
-              </button>
-
-              <button
-                onClick={handleForgotPassword}
-                className="w-full text-center text-sm text-gray-400 hover:text-blue-600 transition"
-              >
-                {labels.forgotPassword[locale]}
               </button>
             </div>
           </div>
