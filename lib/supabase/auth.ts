@@ -91,10 +91,25 @@ export async function resetPassword(email: string) {
   if (error) throw error;
 }
 
-// 비밀번호 변경
-export async function updatePassword(newPassword: string) {
-  var { error } = await supabase.auth.updateUser({
+// 비밀번호 변경 (기존 비밀번호 확인 포함)
+export async function changePassword(currentPassword: string, newPassword: string) {
+  // 1) 기존 비밀번호 확인 - 현재 이메일로 로그인 시도
+  var { data: { user } } = await supabase.auth.getUser();
+  if (!user || !user.email) throw new Error('로그인이 필요합니다');
+
+  var { error: signInError } = await supabase.auth.signInWithPassword({
+    email: user.email,
+    password: currentPassword,
+  });
+
+  if (signInError) {
+    throw new Error('현재 비밀번호가 올바르지 않습니다');
+  }
+
+  // 2) 새 비밀번호로 변경
+  var { error: updateError } = await supabase.auth.updateUser({
     password: newPassword,
   });
-  if (error) throw error;
+
+  if (updateError) throw updateError;
 }
