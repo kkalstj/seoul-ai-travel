@@ -61,3 +61,40 @@ export async function updateProfile(userId: string, updates: { nickname?: string
   if (error) throw error;
   return data;
 }
+
+// 아바타 이미지 업로드
+export async function uploadAvatar(userId: string, file: File) {
+  var fileExt = file.name.split('.').pop();
+  var fileName = userId + '-' + Date.now() + '.' + fileExt;
+  var filePath = 'avatars/' + fileName;
+
+  var { error: uploadError } = await supabase.storage
+    .from('avatars')
+    .upload(filePath, file, { upsert: true });
+
+  if (uploadError) throw uploadError;
+
+  var { data } = supabase.storage
+    .from('avatars')
+    .getPublicUrl(filePath);
+
+  await updateProfile(userId, { avatar_url: data.publicUrl });
+
+  return data.publicUrl;
+}
+
+// 비밀번호 재설정 이메일 발송
+export async function resetPassword(email: string) {
+  var { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + '/auth/reset-password',
+  });
+  if (error) throw error;
+}
+
+// 비밀번호 변경
+export async function updatePassword(newPassword: string) {
+  var { error } = await supabase.auth.updateUser({
+    password: newPassword,
+  });
+  if (error) throw error;
+}
