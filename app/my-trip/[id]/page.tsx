@@ -366,7 +366,11 @@ export default function CourseDetailPage() {
         place_category: result.category,
         day_number: dayNumber,
       });
-      await loadCourse();
+      var data = await getCourseDetail(courseId);
+      setCourse(data);
+      if (showMap && mapInstanceRef2.current) {
+        drawRoute(mapInstanceRef2.current, data);
+      }
       setSearchQuery('');
       setSearchResults([]);
     } catch (err) {
@@ -377,7 +381,11 @@ export default function CourseDetailPage() {
   async function handleRemovePlace(placeId: string) {
     try {
       await removePlaceFromCourse(placeId);
-      await loadCourse();
+      var data = await getCourseDetail(courseId);
+      setCourse(data);
+      if (showMap && mapInstanceRef2.current) {
+        drawRoute(mapInstanceRef2.current, data);
+      }
     } catch (err) {
       console.error('장소 삭제 실패:', err);
     }
@@ -388,7 +396,11 @@ export default function CourseDetailPage() {
     var prevPlace = dayPlaces[index - 1];
     await supabase.from('course_places').update({ order_index: prevPlace.order_index }).eq('id', place.id);
     await supabase.from('course_places').update({ order_index: place.order_index }).eq('id', prevPlace.id);
-    await loadCourse();
+    var data = await getCourseDetail(courseId);
+    setCourse(data);
+    if (showMap && mapInstanceRef2.current) {
+      drawRoute(mapInstanceRef2.current, data);
+    }
   }
 
   async function handleMoveDown(place: CoursePlace, dayPlaces: CoursePlace[], index: number) {
@@ -396,7 +408,11 @@ export default function CourseDetailPage() {
     var nextPlace = dayPlaces[index + 1];
     await supabase.from('course_places').update({ order_index: nextPlace.order_index }).eq('id', place.id);
     await supabase.from('course_places').update({ order_index: place.order_index }).eq('id', nextPlace.id);
-    await loadCourse();
+    var data = await getCourseDetail(courseId);
+    setCourse(data);
+    if (showMap && mapInstanceRef2.current) {
+      drawRoute(mapInstanceRef2.current, data);
+    }
   }
 
   async function handleTitleSave() {
