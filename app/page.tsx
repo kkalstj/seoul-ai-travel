@@ -40,6 +40,12 @@ export default function Home() {
   var [events, setEvents] = useState<EventData[]>([]);
   var [eventsLoading, setEventsLoading] = useState(true);
   var [eventPage, setEventPage] = useState(0);
+  var [articles, setArticles] = useState<any[]>([]);
+  var [articlesLoading, setArticlesLoading] = useState(true);
+
+// 3. 행사+날씨 </div> 뒤, 카테고리 카드 앞에 이 JSX 삽입:
+
+      
 
   useEffect(function() {
     fetch('/api/weather')
@@ -62,6 +68,16 @@ export default function Home() {
       .finally(function() { setEventsLoading(false); });
   }, [locale]);
 
+  useEffect(function() {
+   fetch('/api/articles?locale=' + locale)
+     .then(function(res) { return res.json(); })
+     .then(function(data) {
+       if (data.articles) setArticles(data.articles);
+     })
+     .catch(function(err) { console.error('아티클 로드 실패:', err); })
+     .finally(function() { setArticlesLoading(false); });
+ }, [locale]);
+  
   function getSkyIcon(sky: string) {
     switch (sky) {
       case 'rain': return <CloudRain className="w-8 h-8 text-blue-500" />;
@@ -385,117 +401,46 @@ export default function Home() {
              'AI-Curated Seoul Travel Guides'}
           </h3>
         </div>
-        <div className="space-y-4">
 
-          {/* 아티클 1 */}
-          <Link
-            href="/ai-recommend"
-            className="flex gap-4 p-4 bg-white rounded-2xl border hover:shadow-lg hover:-translate-y-0.5 transition-all group"
-          >
-            <div className="w-28 h-28 md:w-32 md:h-32 rounded-xl bg-gradient-to-br from-pink-100 to-rose-200 flex items-center justify-center shrink-0 text-4xl">
-              🌸
-            </div>
-            <div className="flex-1 min-w-0 py-1">
-              <span className="text-xs px-2 py-0.5 rounded-full bg-pink-50 text-pink-600 font-medium">
-                {locale === 'ko' ? '계절 추천' : locale === 'ja' ? '季節おすすめ' : locale === 'zh' ? '季节推荐' : 'Seasonal'}
-              </span>
-              <h4 className="font-bold text-gray-900 mt-1.5 mb-2 group-hover:text-blue-600 transition leading-snug">
-                {locale === 'ko' ? 'AI가 분석한 서울 벚꽃 나들이 완벽 코스' :
-                 locale === 'ja' ? 'AIが分析したソウル桜お花見完璧コース' :
-                 locale === 'zh' ? 'AI分析的首尔赏樱完美路线' :
-                 'AI-Analyzed Perfect Cherry Blossom Course in Seoul'}
-              </h4>
-              <p className="text-sm text-gray-500 leading-relaxed line-clamp-3">
-                {locale === 'ko' ? '여의도 윤중로에서 시작해 석촌호수, 남산까지 이어지는 벚꽃 명소를 AI가 최적 동선으로 분석했습니다. 각 장소의 만개 시기와 인근 맛집 정보까지 한번에 확인하세요. 도보와 대중교통을 활용한 효율적인 이동 경로를 제안합니다.' :
-                 locale === 'ja' ? '汝矣島の輪中路から石村湖、南山まで続く桜の名所をAIが最適な動線で分析しました。各スポットの満開時期や周辺グルメ情報も一目で確認できます。徒歩と公共交通を活用した効率的な移動ルートをご提案します。' :
-                 locale === 'zh' ? 'AI以最优路线分析了从汝矣岛轮中路到石村湖、南山的赏樱名胜。一次确认各景点的盛开时期和附近美食信息。为您推荐步行和公共交通相结合的高效出行路线。' :
-                 'AI analyzed the best cherry blossom spots from Yeouido Yunjung-ro to Seokchon Lake and Namsan with optimal routing. Check bloom timing and nearby restaurants all at once. Efficient routes combining walking and public transit are suggested.'}
-              </p>
-            </div>
-          </Link>
-
-          {/* 아티클 2 */}
-          <Link
-            href="/ai-recommend"
-            className="flex gap-4 p-4 bg-white rounded-2xl border hover:shadow-lg hover:-translate-y-0.5 transition-all group"
-          >
-            <div className="w-28 h-28 md:w-32 md:h-32 rounded-xl bg-gradient-to-br from-blue-100 to-indigo-200 flex items-center justify-center shrink-0 text-4xl">
-              🌧️
-            </div>
-            <div className="flex-1 min-w-0 py-1">
-              <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 font-medium">
-                {locale === 'ko' ? '실내 코스' : locale === 'ja' ? '室内コース' : locale === 'zh' ? '室内路线' : 'Indoor'}
-              </span>
-              <h4 className="font-bold text-gray-900 mt-1.5 mb-2 group-hover:text-blue-600 transition leading-snug">
-                {locale === 'ko' ? '비 오는 날 서울에서 즐기기 좋은 실내 데이트 동선' :
-                 locale === 'ja' ? '雨の日にソウルで楽しむ室内デートコース' :
-                 locale === 'zh' ? '雨天首尔室内约会路线推荐' :
-                 'Best Indoor Date Courses in Seoul for Rainy Days'}
-              </h4>
-              <p className="text-sm text-gray-500 leading-relaxed line-clamp-3">
-                {locale === 'ko' ? '갑자기 비가 와도 걱정 없는 서울 실내 데이트 코스를 소개합니다. 성수동 카페 거리부터 코엑스 아쿠아리움, 이태원 앤틱 가구 거리까지. 각 장소 간 지하도와 연결 통로를 활용한 비를 피하는 이동 경로도 함께 안내해 드립니다.' :
-                 locale === 'ja' ? '突然の雨でも心配いらないソウルの室内デートコースをご紹介します。聖水洞カフェ通りからCOEXアクアリウム、梨泰院アンティーク家具通りまで。地下道や連絡通路を活用した雨を避ける移動ルートもご案内します。' :
-                 locale === 'zh' ? '介绍下雨也不用担心的首尔室内约会路线。从圣水洞咖啡街到COEX水族馆、梨泰院古董家具街。同时为您介绍利用地下通道和连接通道避雨的移动路线。' :
-                 'Discover worry-free indoor date courses in Seoul for rainy days. From Seongsu-dong cafe street to COEX Aquarium and Itaewon antique furniture street. We also guide you through underground passages to stay dry between venues.'}
-              </p>
-            </div>
-          </Link>
-
-          {/* 아티클 3 */}
-          <Link
-            href="/ai-recommend"
-            className="flex gap-4 p-4 bg-white rounded-2xl border hover:shadow-lg hover:-translate-y-0.5 transition-all group"
-          >
-            <div className="w-28 h-28 md:w-32 md:h-32 rounded-xl bg-gradient-to-br from-amber-100 to-orange-200 flex items-center justify-center shrink-0 text-4xl">
-              🍜
-            </div>
-            <div className="flex-1 min-w-0 py-1">
-              <span className="text-xs px-2 py-0.5 rounded-full bg-orange-50 text-orange-600 font-medium">
-                {locale === 'ko' ? '맛집 투어' : locale === 'ja' ? 'グルメツアー' : locale === 'zh' ? '美食之旅' : 'Food Tour'}
-              </span>
-              <h4 className="font-bold text-gray-900 mt-1.5 mb-2 group-hover:text-blue-600 transition leading-snug">
-                {locale === 'ko' ? '현지인만 아는 서울 골목 맛집 1일 코스' :
-                 locale === 'ja' ? '地元民だけが知るソウル路地裏グルメ1日コース' :
-                 locale === 'zh' ? '只有当地人知道的首尔巷弄美食一日游' :
-                 'Local-Only Seoul Alley Food Tour: A Full Day Course'}
-              </h4>
-              <p className="text-sm text-gray-500 leading-relaxed line-clamp-3">
-                {locale === 'ko' ? '관광객이 잘 모르는 을지로 노포 골목, 망원동 로컬 맛집, 연남동 숨은 디저트 카페까지. AI가 리뷰 데이터를 분석해 현지인 재방문율이 높은 맛집만 엄선했습니다. 아침부터 야식까지 하루 종일 먹방 여행을 즐겨보세요.' :
-                 locale === 'ja' ? '観光客があまり知らない乙支路の老舗路地、望遠洞のローカルグルメ、延南洞の隠れたデザートカフェまで。AIがレビューデータを分析し、地元民のリピート率が高い店だけを厳選しました。朝から夜食まで一日中食べ歩きを楽しみましょう。' :
-                 locale === 'zh' ? '从游客不太知道的乙支路老店巷弄、望远洞本地美食到延南洞隐藏甜点咖啡厅。AI分析评论数据，精选当地人回访率高的餐厅。从早餐到夜宵，享受一整天的美食之旅吧。' :
-                 'From hidden Euljiro alley restaurants to Mangwon-dong local eateries and secret dessert cafes in Yeonnam-dong. AI analyzed review data to curate restaurants with high local revisit rates. Enjoy a full day food tour from breakfast to late-night snacks.'}
-              </p>
-            </div>
-          </Link>
-
-          {/* 아티클 4 */}
-          <Link
-            href="/ai-recommend"
-            className="flex gap-4 p-4 bg-white rounded-2xl border hover:shadow-lg hover:-translate-y-0.5 transition-all group"
-          >
-            <div className="w-28 h-28 md:w-32 md:h-32 rounded-xl bg-gradient-to-br from-violet-100 to-purple-200 flex items-center justify-center shrink-0 text-4xl">
-              🌃
-            </div>
-            <div className="flex-1 min-w-0 py-1">
-              <span className="text-xs px-2 py-0.5 rounded-full bg-purple-50 text-purple-600 font-medium">
-                {locale === 'ko' ? '야경 코스' : locale === 'ja' ? '夜景コース' : locale === 'zh' ? '夜景路线' : 'Night View'}
-              </span>
-              <h4 className="font-bold text-gray-900 mt-1.5 mb-2 group-hover:text-blue-600 transition leading-snug">
-                {locale === 'ko' ? '서울 야경 베스트 5 — 일몰부터 자정까지 완벽 루트' :
-                 locale === 'ja' ? 'ソウル夜景ベスト5 — 日没から深夜まで完璧ルート' :
-                 locale === 'zh' ? '首尔夜景TOP5 — 从日落到午夜的完美路线' :
-                 'Top 5 Seoul Night Views — Perfect Route from Sunset to Midnight'}
-              </h4>
-              <p className="text-sm text-gray-500 leading-relaxed line-clamp-3">
-                {locale === 'ko' ? 'N서울타워 일몰 감상을 시작으로 한강 반포대교 달빛무지개분수, DDP 야간 조명, 낙산공원 성곽길 야경, 이태원 루프탑 바까지. 서울의 밤을 가장 아름답게 즐기는 동선을 AI가 시간대별로 설계했습니다.' :
-                 locale === 'ja' ? 'Nソウルタワーの夕日観賞を皮切りに、漢江盤浦大橋の月光レインボー噴水、DDP夜間照明、駱山公園城郭路の夜景、梨泰院ルーフトップバーまで。ソウルの夜を最も美しく楽しむ動線をAIが時間帯別に設計しました。' :
-                 locale === 'zh' ? '从N首尔塔欣赏日落开始，到汉江盘浦大桥月光彩虹喷泉、DDP夜间灯光、骆山公园城郭路夜景、梨泰院屋顶酒吧。AI按时间段设计了最美丽地享受首尔夜晚的路线。' :
-                 'Starting with sunset at N Seoul Tower, then Banpo Bridge Rainbow Fountain, DDP night illumination, Naksan Park fortress trail views, and Itaewon rooftop bars. AI designed the perfect time-based route to enjoy Seoul\'s most beautiful nights.'}
-              </p>
-            </div>
-          </Link>
-
-        </div>
+        {articlesLoading ? (
+          <div className="flex justify-center py-8">
+            <div className="w-6 h-6 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+          </div>
+        ) : articles.length === 0 ? (
+          <div className="text-center py-8 text-gray-400 text-sm">
+            {locale === 'ko' ? '아티클을 준비 중입니다' :
+             locale === 'ja' ? '記事を準備中です' :
+             locale === 'zh' ? '文章准备中' :
+             'Articles coming soon'}
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {articles.map(function(article: any) {
+              return (
+                <Link
+                  key={article.id}
+                  href="/ai-recommend"
+                  className="flex gap-4 p-4 bg-white rounded-2xl border hover:shadow-lg hover:-translate-y-0.5 transition-all group"
+                >
+                  <div className={'w-28 h-28 md:w-32 md:h-32 rounded-xl bg-gradient-to-br flex items-center justify-center shrink-0 text-4xl ' + article.color_from + ' ' + article.color_to}>
+                    {article.emoji}
+                  </div>
+                  <div className="flex-1 min-w-0 py-1">
+                    <span className={'text-xs px-2 py-0.5 rounded-full font-medium ' + article.badge_bg + ' ' + article.badge_text}>
+                      {article.category}
+                    </span>
+                    <h4 className="font-bold text-gray-900 mt-1.5 mb-2 group-hover:text-blue-600 transition leading-snug">
+                      {article.title}
+                    </h4>
+                    <p className="text-sm text-gray-500 leading-relaxed line-clamp-3">
+                      {article.summary}
+                    </p>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </div>
       
       {/* 카테고리 카드 */}
