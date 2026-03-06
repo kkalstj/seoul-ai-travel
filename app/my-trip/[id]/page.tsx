@@ -366,11 +366,7 @@ export default function CourseDetailPage() {
         place_category: result.category,
         day_number: dayNumber,
       });
-      var data = await getCourseDetail(courseId);
-      setCourse(data);
-      if (showMap && mapInstanceRef2.current) {
-        drawRoute(mapInstanceRef2.current, data);
-      }
+      await loadCourse();
       setSearchQuery('');
       setSearchResults([]);
     } catch (err) {
@@ -381,11 +377,7 @@ export default function CourseDetailPage() {
   async function handleRemovePlace(placeId: string) {
     try {
       await removePlaceFromCourse(placeId);
-      var data = await getCourseDetail(courseId);
-      setCourse(data);
-      if (showMap && mapInstanceRef2.current) {
-        drawRoute(mapInstanceRef2.current, data);
-      }
+      await loadCourse();
     } catch (err) {
       console.error('장소 삭제 실패:', err);
     }
@@ -396,11 +388,7 @@ export default function CourseDetailPage() {
     var prevPlace = dayPlaces[index - 1];
     await supabase.from('course_places').update({ order_index: prevPlace.order_index }).eq('id', place.id);
     await supabase.from('course_places').update({ order_index: place.order_index }).eq('id', prevPlace.id);
-    var data = await getCourseDetail(courseId);
-    setCourse(data);
-    if (showMap && mapInstanceRef2.current) {
-      drawRoute(mapInstanceRef2.current, data);
-    }
+    await loadCourse();
   }
 
   async function handleMoveDown(place: CoursePlace, dayPlaces: CoursePlace[], index: number) {
@@ -408,11 +396,7 @@ export default function CourseDetailPage() {
     var nextPlace = dayPlaces[index + 1];
     await supabase.from('course_places').update({ order_index: nextPlace.order_index }).eq('id', place.id);
     await supabase.from('course_places').update({ order_index: place.order_index }).eq('id', nextPlace.id);
-    var data = await getCourseDetail(courseId);
-    setCourse(data);
-    if (showMap && mapInstanceRef2.current) {
-      drawRoute(mapInstanceRef2.current, data);
-    }
+    await loadCourse();
   }
 
   async function handleTitleSave() {
@@ -531,7 +515,20 @@ export default function CourseDetailPage() {
         </button>
         {showMap && (
           <div className="mt-3 rounded-2xl overflow-hidden border shadow-sm">
-            <div ref={mapContainerRef} style={{ height: '350px', width: '100%' }} />
+            <div style={{ position: 'relative' }}>
+              <div ref={mapContainerRef} style={{ height: '350px', width: '100%' }} />
+              <button
+                onClick={function() {
+                  if (mapInstanceRef2.current && course) {
+                    setTransitInfo([]);
+                    drawRoute(mapInstanceRef2.current, course);
+                  }
+                }}
+                className="absolute top-3 right-3 z-10 flex items-center gap-1.5 px-3 py-1.5 bg-white text-sm font-medium text-gray-700 rounded-lg shadow-md border hover:bg-gray-50 active:bg-gray-100 transition"
+              >
+                🔄 {locale === 'ko' ? '경로 갱신' : locale === 'ja' ? 'ルート更新' : locale === 'zh' ? '更新路线' : 'Refresh Route'}
+              </button>
+            </div>
             {transitInfo.length > 0 && (
               <div className="p-3 space-y-2 bg-gray-50 max-h-60 overflow-y-auto">
                 {transitInfo.map(function(info, idx) {
