@@ -529,6 +529,15 @@ export default function CourseDetailPage() {
                 🔄 {locale === 'ko' ? '경로 갱신' : locale === 'ja' ? 'ルート更新' : locale === 'zh' ? '更新路线' : 'Refresh Route'}
               </button>
             </div>
+            {/* 안내 문구 */}
+            <div className="px-3 py-2 bg-amber-50 border-t border-amber-100">
+              <p className="text-xs text-amber-600">
+                ⚠️ {locale === 'ko' ? '주소 정보가 없는 장소는 지도와 경로에 표시되지 않습니다.' :
+                    locale === 'ja' ? '住所情報のない場所は地図とルートに表示されません。' :
+                    locale === 'zh' ? '没有地址信息的地点不会显示在地图和路线上。' :
+                    'Places without address info will not appear on the map or route.'}
+              </p>
+            </div>
             {transitInfo.length > 0 && (
               <div className="p-3 space-y-2 bg-gray-50 max-h-60 overflow-y-auto">
                 {transitInfo.map(function(info, idx) {
