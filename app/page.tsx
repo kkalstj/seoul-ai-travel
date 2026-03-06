@@ -42,9 +42,6 @@ export default function Home() {
   var [eventPage, setEventPage] = useState(0);
   var [articles, setArticles] = useState<any[]>([]);
   var [articlesLoading, setArticlesLoading] = useState(true);
-
-// 3. 행사+날씨 </div> 뒤, 카테고리 카드 앞에 이 JSX 삽입:
-
       
 
   useEffect(function() {
