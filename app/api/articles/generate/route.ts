@@ -75,6 +75,9 @@ export async function POST(request: NextRequest) {
     await supabase.from('articles').delete().neq('id', '00000000-0000-0000-0000-000000000000');
 
     for (var li = 0; li < locales.length; li++) {
+      if (li > 0) {
+        await new Promise(function(resolve) { setTimeout(resolve, 5000); });
+      }
       var locale = locales[li];
       var config = localeConfig[locale];
       var seasonName = getSeasonName(season, locale);
