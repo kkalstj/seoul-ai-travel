@@ -232,7 +232,7 @@ export default function Home() {
           {t('home.startExplore')}
         </Link>
         <Link
-          href="/ai-recommend"
+          href={'/article/' + article.id}
           className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 shadow-md shadow-blue-200 transition-all"
         >
           <Sparkles className="w-5 h-5" />
