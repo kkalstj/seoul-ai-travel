@@ -11,23 +11,11 @@ const supabase = createClient(
 
 var locales = ['ko', 'en', 'ja', 'zh'];
 
-var localeConfig: Record<string, { instruction: string; seasonLabel: string }> = {
-  ko: {
-    instruction: '한국어로 작성하세요.',
-    seasonLabel: '계절',
-  },
-  en: {
-    instruction: 'Write in English.',
-    seasonLabel: 'season',
-  },
-  ja: {
-    instruction: '日本語で作成してください。',
-    seasonLabel: '季節',
-  },
-  zh: {
-    instruction: '用中文撰写。',
-    seasonLabel: '季节',
-  },
+var localeConfig: Record<string, { instruction: string }> = {
+  ko: { instruction: '한국어로 작성하세요.' },
+  en: { instruction: 'Write in English.' },
+  ja: { instruction: '日本語で作成してください。' },
+  zh: { instruction: '用中文撰写。' },
 };
 
 function getSeason(): string {
@@ -61,7 +49,6 @@ var stylePresets = [
 
 export async function POST(request: NextRequest) {
   try {
-    // 인증 확인 (Cron Job 또는 수동 호출)
     var authHeader = request.headers.get('authorization');
     if (authHeader !== 'Bearer ' + process.env.CRON_SECRET) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -78,6 +65,7 @@ export async function POST(request: NextRequest) {
       if (li > 0) {
         await new Promise(function(resolve) { setTimeout(resolve, 5000); });
       }
+
       var locale = locales[li];
       var config = localeConfig[locale];
       var seasonName = getSeasonName(season, locale);
@@ -87,11 +75,11 @@ ${config.instruction}
 
 Current month: ${month}, Season: ${seasonName}
 
-Generate exactly 4 travel article summaries for Seoul.
-Each article should be unique and relevant to the current season/weather.
+Generate exactly 4 travel articles for Seoul.
+Each article must be unique and relevant to the current season/weather.
 
-Consider these themes (pick 4 different ones):
-- Seasonal attractions (cherry blossoms, autumn leaves, snow, summer festivals, etc.)
+Pick 4 different themes from:
+- Seasonal attractions (cherry blossoms, autumn leaves, snow, summer festivals)
 - Rainy day / indoor courses
 - Local food tours / hidden gem restaurants
 - Night view / evening courses
@@ -102,23 +90,34 @@ Consider these themes (pick 4 different ones):
 - Instagram-worthy photo spots
 - K-culture experiences
 
+For each article, provide:
+1. category: short label (2-4 words)
+2. title: compelling title (under 25 chars)
+3. summary: 3-4 sentence overview (100-150 chars)
+4. content: detailed article (300-500 chars) with specific Seoul places. Use emojis for places like:
+   📍 Place Name - description
+   🍜 Restaurant Name - what to eat
+   ☕ Cafe Name - description
+   🚇 Transit info between places
+   💡 Tips
+5. prompt: a natural question a user would ask AI about this topic (1 sentence)
+
 Respond ONLY with a JSON array, no markdown, no backticks:
 [
   {
-    "category": "short category label (2-4 words)",
-    "title": "compelling article title (under 30 chars)",
-    "summary": "detailed 3-4 sentence summary (80-120 chars). Include specific Seoul place names and practical tips."
+    "category": "...",
+    "title": "...",
+    "summary": "...",
+    "content": "...",
+    "prompt": "..."
   }
 ]`;
 
       var result = await model.generateContent(prompt);
       var text = result.response.text().trim();
-
-      // JSON 파싱
       var cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
       var articles = JSON.parse(cleanText);
 
-      // DB에 저장
       for (var ai = 0; ai < articles.length && ai < 4; ai++) {
         var style = stylePresets[ai % stylePresets.length];
         await supabase.from('articles').insert({
@@ -127,6 +126,8 @@ Respond ONLY with a JSON array, no markdown, no backticks:
           category: articles[ai].category,
           title: articles[ai].title,
           summary: articles[ai].summary,
+          content: articles[ai].content,
+          prompt: articles[ai].prompt,
           color_from: style.color_from,
           color_to: style.color_to,
           badge_bg: style.badge_bg,
