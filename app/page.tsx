@@ -232,7 +232,7 @@ export default function Home() {
           {t('home.startExplore')}
         </Link>
         <Link
-          href={'/article/' + article.id}
+          href="/ai-recommend"}
           className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 shadow-md shadow-blue-200 transition-all"
         >
           <Sparkles className="w-5 h-5" />
@@ -416,7 +416,7 @@ export default function Home() {
               return (
                 <Link
                   key={article.id}
-                  href="/ai-recommend"
+                  href={'/article/' + article.id}
                   className="flex gap-4 p-4 bg-white rounded-2xl border hover:shadow-lg hover:-translate-y-0.5 transition-all group"
                 >
                   <div className={'w-28 h-28 md:w-32 md:h-32 rounded-xl bg-gradient-to-br flex items-center justify-center shrink-0 text-4xl ' + article.color_from + ' ' + article.color_to}>
