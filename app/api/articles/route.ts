@@ -6,6 +6,8 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     var locale = request.nextUrl.searchParams.get('locale') || 'ko';
@@ -19,7 +21,10 @@ export async function GET(request: NextRequest) {
 
     if (error) throw error;
 
-    return NextResponse.json({ articles: data || [] });
+    return NextResponse.json(
+      { articles: data || [] },
+      { headers: { 'Cache-Control': 'no-store, max-age=0' } }
+    );
   } catch (error: any) {
     console.error('Articles fetch error:', error);
     return NextResponse.json({ articles: [] });
