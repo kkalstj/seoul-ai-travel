@@ -56,8 +56,11 @@ export async function POST(request: NextRequest) {
 
     var season = getSeason();
     var month = new Date().getMonth() + 1;
-    var model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
-
+    var model = genAI.getGenerativeModel({
+  model: 'gemini-3-flash-preview',
+  tools: [{ googleSearch: {} }],
+});
+    
     // 기존 아티클 삭제
     await supabase.from('articles').delete().neq('id', '00000000-0000-0000-0000-000000000000');
 
@@ -70,39 +73,47 @@ export async function POST(request: NextRequest) {
       var config = localeConfig[locale];
       var seasonName = getSeasonName(season, locale);
 
-      var prompt = `You are a Seoul travel content creator.
+      var prompt = `당신은 서울 여행 콘텐츠 전문 작가입니다. 최신 트렌드를 항상 반영합니다.
 ${config.instruction}
 
-Current month: ${month}, Season: ${seasonName}
+현재 월: ${month}월, 계절: ${seasonName}
 
-Generate exactly 4 travel articles for Seoul.
-Each article must be unique and relevant to the current season/weather.
+중요: Google 검색을 활용하여 서울의 최신 여행 트렌드, 화제의 맛집, 인기 TV 프로그램 관련 장소, 최근 음식 축제, 미슐랭 선정 식당, 요즘 뜨는 핫플레이스를 조사하세요.
 
-Pick 4 different themes from:
-- Seasonal attractions (cherry blossoms, autumn leaves, snow, summer festivals)
-- Rainy day / indoor courses
-- Local food tours / hidden gem restaurants
-- Night view / evening courses
-- Historical / cultural tours
-- Shopping courses
-- Family-friendly courses
-- Solo travel courses
-- Instagram-worthy photo spots
-- K-culture experiences
+서울 여행 아티클 4개를 생성하세요.
+각 아티클은 반드시 최신 트렌드를 반영하고, 현재 계절, 날씨에 적합해야 합니다.
 
-For each article, provide:
-1. category: short label (2-4 words)
-2. title: compelling title (under 25 chars)
-3. summary: 3-4 sentence overview (100-150 chars)
-4. content: detailed article (300-500 chars) with specific Seoul places. Use emojis for places like:
-   📍 Place Name - description
-   🍜 Restaurant Name - what to eat
-   ☕ Cafe Name - description
-   🚇 Transit info between places
-   💡 Tips
-5. prompt: a natural question a user would ask AI about this topic (1 sentence)
+아래 트렌드 주제를 검색하여 반영하세요:
+- 최근 미슐랭 가이드 서울 선정 식당
+- 한국 TV 프로그램에 나온 화제의 맛집 (흑백요리사, 수요미식회, 줄 서는 식당 등)
+- 현재 진행 중이거나 예정된 서울 축제 및 행사
+- 최근 오픈한 인기 카페, 맛집, 관광지
+- 요즘 인스타그램/틱톡에서 뜨는 서울 핫플레이스
+- 이번 달에 즐길 수 있는 계절 활동
+- 현재 인기 있는 K-드라마 촬영지
+- 서울 최신 음식 트렌드 (유행 메뉴, 팝업스토어)
 
-Respond ONLY with a JSON array, no markdown, no backticks:
+클래식 테마도 고려하세요:
+- 계절 명소 (벚꽃, 단풍, 눈, 여름 축제)
+- 비 오는 날 실내 코스
+- 야경 코스
+- 역사/문화 탐방
+
+각 아티클에 아래 항목을 포함하세요:
+1. category: 짧은 카테고리 라벨 (2~4단어)
+2. title: 트렌드를 반영한 매력적인 제목 (25자 이내)
+3. summary: 3~4문장 요약 (100~150자). 구체적인 트렌드 장소명을 포함하세요.
+4. content: 상세 아티클 (300~500자). 구체적인 서울 장소를 포함하고 아래 이모지를 사용하세요:
+   📍 장소명 - 설명
+   🍜 식당명 - 추천 메뉴
+   ☕ 카페명 - 설명
+   🚇 장소 간 이동 정보
+   💡 꿀팁
+5. prompt: 이 아티클의 제목, 핵심 장소, 테마를 포함한 상세 요청문. AI 여행 플래너가 이 아티클과 일치하는 코스를 생성할 수 있도록 충분한 정보를 담으세요. 형식: "[아티클 테마]에 맞는 코스를 추천해주세요. [아티클에 언급된 핵심 장소들]을 포함해주세요."
+
+prompt 항목이 매우 중요합니다. 별도의 AI가 이 prompt를 받아서 아티클 내용과 정확히 일치하는 여행 코스를 생성할 수 있어야 합니다.
+
+반드시 JSON 배열로만 응답하세요. 마크다운이나 백틱 없이:
 [
   {
     "category": "...",
