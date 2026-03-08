@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
       var config = localeConfig[locale];
       var seasonName = getSeasonName(season, locale);
 
-      var prompt = `당신은 서울 여행 콘텐츠 전문 작가입니다. 최신 트렌드를 항상 반영합니다.
+      var prompt = `당신은 30년 경력의 서울 여행 콘텐츠 전문 작가입니다. 최신 트렌드를 항상 반영합니다.
 ${config.instruction}
 
 현재 월: ${month}월, 계절: ${seasonName}
@@ -81,7 +81,7 @@ ${config.instruction}
 중요: Google 검색을 활용하여 서울의 최신 여행 트렌드, 화제의 맛집, 인기 TV 프로그램 관련 장소, 최근 음식 축제, 미슐랭 선정 식당, 요즘 뜨는 핫플레이스를 조사하세요.
 
 서울 여행 아티클 4개를 생성하세요.
-각 아티클은 반드시 최신 트렌드를 반영하고, 현재 계절, 날씨에 적합해야 합니다.
+각 아티클은 반드시 최신 트렌드를 반영하고, 현재 계절, 실시간 날씨에 적합해야 합니다.
 
 아래 트렌드 주제를 검색하여 반영하세요:
 - 최근 미슐랭 가이드 서울 선정 식당
