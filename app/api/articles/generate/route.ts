@@ -117,6 +117,7 @@ prompt 항목이 매우 중요합니다. 별도의 AI가 이 prompt를 받아서
 반드시 JSON 배열로만 응답하세요. 마크다운이나 백틱 없이:
 [
   {
+     "emoji": "주제에 맞는 이모지 1개 (예: 🌸, 🍜, 🌃, 🏛️, ☕, 🎭, 🛍️, 🌧️, 🚶, 🎪, ❄️, 🌊 등)",
     "category": "...",
     "title": "...",
     "summary": "...",
@@ -134,7 +135,7 @@ prompt 항목이 매우 중요합니다. 별도의 AI가 이 prompt를 받아서
         var style = stylePresets[ai % stylePresets.length];
         await supabase.from('articles').insert({
           locale: locale,
-          emoji: style.emoji,
+          emoji: articles[ai].emoji || style.emoji,
           category: articles[ai].category,
           title: articles[ai].title,
           summary: articles[ai].summary,
