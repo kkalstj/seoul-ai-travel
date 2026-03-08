@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   description: 'AI가 추천하는 서울 맛집, 관광지, 숙소를 탐색하세요',
    verification: {
     google: 'google-site-verification=jrEoOM2ZRVBZTTKQL5ePBAgDA_lDAET_LXfNUZsGt8E',
-   }
+   },
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: 'any' },
