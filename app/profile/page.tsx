@@ -429,7 +429,11 @@ export default function ProfilePage() {
           ) : (
             favorites.map(function(fav) {
               return (
-                <div key={fav.id} className="bg-white rounded-xl p-3 shadow-sm border flex items-center gap-3">
+                <div
+                  key={fav.id}
+                  className="bg-white rounded-xl p-3 shadow-sm border flex items-center gap-3 cursor-pointer hover:shadow-md transition"
+                  onClick={function() { router.push('/explore?tab=' + fav.place_type + '&search=' + encodeURIComponent(fav.place_name)); }}
+                >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-0.5">
                       <span className={'text-xs px-2 py-0.5 rounded-full ' + (typeColors[fav.place_type] || 'bg-gray-100 text-gray-600')}>
@@ -467,7 +471,7 @@ export default function ProfilePage() {
                 <div
                   key={rev.id}
                   className="bg-white rounded-xl p-4 shadow-sm border cursor-pointer hover:shadow-md transition"
-                  onClick={function() { setReviewModal({ id: rev.place_id, type: rev.place_type, name: rev.place_name }); }}
+                  onClick={function() { router.push('/explore?tab=' + rev.place_type + '&search=' + encodeURIComponent(rev.place_name)); }}
                 >
                   <div className="flex items-center gap-2 mb-2">
                     <span className={'text-xs px-2 py-0.5 rounded-full ' + (typeColors[rev.place_type] || 'bg-gray-100 text-gray-600')}>
