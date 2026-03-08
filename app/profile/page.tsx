@@ -478,7 +478,7 @@ export default function ProfilePage() {
                       {typeLabels[rev.place_type] || rev.place_type}
                     </span>
                     <span className="font-medium text-sm">{rev.place_name}</span>
-                    <span className="text-xs text-blue-500 ml-auto">{t('profile.viewReview')} →</span>
+                    <span className="text-xs text-blue-500 ml-auto">{t('profile.viewReview')} </span>
                   </div>
                   <div className="flex items-center gap-1 mb-1">
                     {[1, 2, 3, 4, 5].map(function(star) {
