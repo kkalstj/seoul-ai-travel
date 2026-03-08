@@ -6,6 +6,8 @@ import Header from '@/components/layout/Header';
 import BottomNav from '@/components/layout/BottomNav';
 import AuthProvider from '@/components/auth/AuthProvider';
 import LanguageProvider from '@/lib/i18n/LanguageContext';
+import Footer from '@/components/layout/Footer';
+
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -44,6 +46,7 @@ export default function RootLayout({
             <Header />
             <main className="pb-20 md:pb-0">{children}</main>
             <BottomNav />
+            <Footer />
           </AuthProvider>
         </LanguageProvider>
       </body>
