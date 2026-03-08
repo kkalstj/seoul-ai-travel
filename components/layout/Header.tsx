@@ -29,27 +29,48 @@ export default function Header() {
           </div>
           <span className="font-bold text-lg text-gray-900">Seoul AI Travel</span>
         </Link>
-        <nav className="hidden md:flex items-center gap-1">
-          <Link
-            href="/explore"
-            className={'px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ' + (pathname.startsWith('/explore') ? 'text-blue-600 bg-blue-50' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50')}
-          >
-            {t('nav.explore')}
-          </Link>
-          <Link
-            href="/ai-recommend"
-            className={'px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ' + (pathname.startsWith('/ai-recommend') ? 'text-blue-600 bg-blue-50' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50')}
-          >
-            {t('nav.ai')}
-          </Link>
-          <Link
-            href="/my-trip"
-            className={'px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ' + (pathname.startsWith('/my-trip') ? 'text-blue-600 bg-blue-50' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50')}
-          >
-            {t('nav.myTrip')}
-          </Link>
 
-          {/* 언어 선택 */}
+        <div className="flex items-center gap-1">
+          <nav className="hidden md:flex items-center gap-1">
+            <Link
+              href="/explore"
+              className={'px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ' + (pathname.startsWith('/explore') ? 'text-blue-600 bg-blue-50' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50')}
+            >
+              {t('nav.explore')}
+            </Link>
+            <Link
+              href="/ai-recommend"
+              className={'px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ' + (pathname.startsWith('/ai-recommend') ? 'text-blue-600 bg-blue-50' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50')}
+            >
+              {t('nav.ai')}
+            </Link>
+            <Link
+              href="/my-trip"
+              className={'px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ' + (pathname.startsWith('/my-trip') ? 'text-blue-600 bg-blue-50' : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50')}
+            >
+              {t('nav.myTrip')}
+            </Link>
+
+            {!loading && (
+              user ? (
+                <Link
+                  href="/profile"
+                  className={'ml-1 p-2 rounded-full transition-colors ' + (pathname.startsWith('/profile') ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-gray-100')}
+                >
+                  <User size={18} />
+                </Link>
+              ) : (
+                <Link
+                  href="/auth"
+                  className="ml-1 px-3 py-1.5 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  {t('nav.login')}
+                </Link>
+              )
+            )}
+          </nav>
+
+          {/* 언어 선택 - nav 바깥이라 모바일에서도 보임 */}
           <div className="relative ml-2">
             <button
               onClick={function() { setShowLang(!showLang); }}
@@ -74,25 +95,7 @@ export default function Header() {
               </div>
             )}
           </div>
-
-          {!loading && (
-            user ? (
-              <Link
-                href="/profile"
-                className={'ml-1 p-2 rounded-full transition-colors ' + (pathname.startsWith('/profile') ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-gray-100')}
-              >
-                <User size={18} />
-              </Link>
-            ) : (
-              <Link
-                href="/auth"
-                className="ml-1 px-3 py-1.5 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                {t('nav.login')}
-              </Link>
-            )
-          )}
-        </nav>
+        </div>
       </div>
     </header>
   );
