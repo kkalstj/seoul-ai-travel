@@ -23,6 +23,7 @@ export default function ProfilePage() {
   var [reviewModal, setReviewModal] = useState<any>(null);
   var [uploadingAvatar, setUploadingAvatar] = useState(false);
   var fileInputRef = useRef<HTMLInputElement>(null);
+  var [deleting, setDeleting] = useState(false);
 
   // 비밀번호 변경 관련 state
   var [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -59,6 +60,42 @@ export default function ProfilePage() {
     }
   }, [user, authLoading]);
 
+  async function handleDeleteAccount() {
+  var confirmMsg = locale === 'ko' ? '정말 탈퇴하시겠습니까?\n\n모든 데이터(찜, 리뷰, 여행 코스)가 영구 삭제되며 복구할 수 없습니다.' :
+    locale === 'ja' ? '本当に退会しますか？\n\nすべてのデータが永久に削除され、復元できません。' :
+    locale === 'zh' ? '确定要注销账户吗？\n\n所有数据将被永久删除且无法恢复。' :
+    'Are you sure you want to delete your account?\n\nAll data (favorites, reviews, trip courses) will be permanently deleted and cannot be recovered.';
+
+  if (!confirm(confirmMsg)) return;
+
+  var doubleConfirm = locale === 'ko' ? '마지막 확인입니다. 정말 탈퇴하시겠습니까?' :
+    locale === 'ja' ? '最終確認です。本当に退会しますか？' :
+    locale === 'zh' ? '最后确认。确定要注销吗？' :
+    'Final confirmation. Delete your account?';
+
+  if (!confirm(doubleConfirm)) return;
+
+  setDeleting(true);
+  try {
+    var res = await fetch('/api/auth/delete-account', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: user.id }),
+    });
+
+    var data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+
+    await signOut();
+    router.push('/');
+  } catch (err: any) {
+    console.error('탈퇴 실패:', err);
+    alert(locale === 'ko' ? '탈퇴에 실패했습니다. 다시 시도해주세요.' : 'Failed to delete account. Please try again.');
+  } finally {
+    setDeleting(false);
+  }
+}
+  
   async function loadData() {
     try {
       var profileData = await getProfile(user.id);
@@ -265,6 +302,13 @@ export default function ProfilePage() {
           >
             <Lock size={14} />
             {labels.changePassword[locale]}
+          </button>
+          <button
+            onClick={handleDeleteAccount}
+            disabled={deleting}
+            className="text-xs text-gray-400 hover:text-red-500 transition"
+          >
+            {deleting ? '...' : (locale === 'ko' ? '회원탈퇴' : locale === 'ja' ? '退会' : locale === 'zh' ? '注销账户' : 'Delete Account')}
           </button>
         </div>
       </div>
