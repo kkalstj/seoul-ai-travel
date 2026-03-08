@@ -8,6 +8,7 @@ import { useAuth } from '@/components/auth/AuthProvider';
 import { signOut, getProfile, updateProfile, uploadAvatar, changePassword } from '@/lib/supabase/auth';
 import { getMyFavorites, getMyReviews } from '@/lib/supabase/interactions';
 import ReviewModal from '@/components/reviews/ReviewModal';
+import { signOut, getProfile, updateProfile, uploadAvatar, deleteAvatar, changePassword } from '@/lib/supabase/auth';
 
 export default function ProfilePage() {
   var { t, locale } = useLanguage();
@@ -146,6 +147,22 @@ export default function ProfilePage() {
     }
   }
 
+  async function handleAvatarDelete() {
+  if (!user || !profile?.avatar_url) return;
+  var msg = locale === 'ko' ? '프로필 사진을 삭제하시겠습니까?' :
+    locale === 'ja' ? 'プロフィール写真を削除しますか？' :
+    locale === 'zh' ? '确定删除头像吗？' :
+    'Delete profile photo?';
+  if (!confirm(msg)) return;
+
+  try {
+    await deleteAvatar(user.id);
+    setProfile({ ...profile, avatar_url: null });
+  } catch (err) {
+    console.error('아바타 삭제 실패:', err);
+  }
+}
+  
   async function handlePasswordChange() {
     setPasswordError('');
     setPasswordSuccess(false);
@@ -253,6 +270,14 @@ export default function ProfilePage() {
               onChange={handleAvatarChange}
               className="hidden"
             />
+            {profile?.avatar_url && (
+              <button
+                onClick={handleAvatarDelete}
+                className="absolute -top-1 -left-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-white hover:bg-red-600 transition text-xs"
+              >
+                ✕
+              </button>
+            )}
           </div>
 
           {/* 닉네임 + 이메일 */}
