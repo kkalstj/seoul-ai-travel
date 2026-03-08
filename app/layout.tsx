@@ -14,6 +14,9 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata: Metadata = {
   title: 'Seoul AI Travel - AI와 함께하는 서울 여행',
   description: 'AI가 추천하는 서울 맛집, 관광지, 숙소를 탐색하세요',
+   verification: {
+    google: 'google-site-verification=jrEoOM2ZRVBZTTKQL5ePBAgDA_lDAET_LXfNUZsGt8E',
+   }
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: 'any' },
