@@ -112,3 +112,15 @@ export async function changePassword(currentPassword: string, newPassword: strin
 
   if (updateError) throw updateError;
 }
+
+export async function deleteAvatar(userId: string) {
+  // Storage에서 파일 삭제
+  var { error: storageError } = await supabase.storage
+    .from('avatars')
+    .remove([userId + '.jpg', userId + '.png', userId + '.jpeg', userId + '.webp']);
+
+  if (storageError) console.error('Storage delete error:', storageError);
+
+  // 프로필에서 avatar_url 제거
+  await updateProfile(userId, { avatar_url: null });
+}
