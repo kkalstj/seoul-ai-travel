@@ -5,7 +5,6 @@ import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { User, Heart, Star, LogOut, Edit2, Check, Camera, Lock, X } from 'lucide-react';
 import { useAuth } from '@/components/auth/AuthProvider';
-import { signOut, getProfile, updateProfile, uploadAvatar, changePassword } from '@/lib/supabase/auth';
 import { getMyFavorites, getMyReviews } from '@/lib/supabase/interactions';
 import ReviewModal from '@/components/reviews/ReviewModal';
 import { signOut, getProfile, updateProfile, uploadAvatar, deleteAvatar, changePassword } from '@/lib/supabase/auth';
