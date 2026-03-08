@@ -73,7 +73,7 @@ export var translations: Record<Locale, Record<string, string>> = {
     'profile.noReviews': '작성한 리뷰가 없어요',
     'profile.browsePlaces': '장소 둘러보기',
     'profile.logout': '로그아웃',
-    'profile.viewReview': '리뷰 보기 →',
+    'profile.viewReview': '리뷰 보기',
 
     // 리뷰
     'review.count': '개',
@@ -238,7 +238,7 @@ export var translations: Record<Locale, Record<string, string>> = {
     'profile.noReviews': 'No reviews yet',
     'profile.browsePlaces': 'Browse Places',
     'profile.logout': 'Logout',
-    'profile.viewReview': 'View Review →',
+    'profile.viewReview': 'View Review',
 
     'review.count': '',
     'review.write': 'Write a review (optional)',
@@ -397,7 +397,7 @@ export var translations: Record<Locale, Record<string, string>> = {
     'profile.noReviews': 'レビューがありません',
     'profile.browsePlaces': 'スポットを探す',
     'profile.logout': 'ログアウト',
-    'profile.viewReview': 'レビューを見る →',
+    'profile.viewReview': 'レビューを見る',
 
     'review.count': '件',
     'review.write': 'レビューを書いてください（任意）',
@@ -556,7 +556,7 @@ export var translations: Record<Locale, Record<string, string>> = {
     'profile.noReviews': '没有写过评价',
     'profile.browsePlaces': '浏览地点',
     'profile.logout': '退出登录',
-    'profile.viewReview': '查看评价 →',
+    'profile.viewReview': '查看评价',
 
     'review.count': '条',
     'review.write': '写评价（可选）',
