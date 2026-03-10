@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, Sparkles, Loader2 } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
@@ -13,6 +13,28 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
+function loadGoogleMaps(): Promise<void> {
+  return new Promise(function(resolve, reject) {
+    if ((window as any).google && (window as any).google.maps) {
+      resolve();
+      return;
+    }
+    var existing = document.getElementById('google-maps-script');
+    if (existing) {
+      existing.addEventListener('load', function() { resolve(); });
+      return;
+    }
+    var script = document.createElement('script');
+    script.id = 'google-maps-script';
+    script.src = 'https://maps.googleapis.com/maps/api/js?key=' + process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY + '&libraries=places';
+    script.async = true;
+    script.defer = true;
+    script.onload = function() { resolve(); };
+    script.onerror = function() { reject(new Error('Google Maps load failed')); };
+    document.head.appendChild(script);
+  });
+}
+
 export default function ArticleDetailPage() {
   var { locale } = useLanguage();
   var params = useParams();
@@ -24,6 +46,8 @@ export default function ArticleDetailPage() {
   var [itinerary, setItinerary] = useState<any>(null);
   var [generating, setGenerating] = useState(false);
   var [error, setError] = useState('');
+  var [transitInfo, setTransitInfo] = useState<any[]>([]);
+  var [transitLoading, setTransitLoading] = useState(false);
 
   var labels: Record<string, Record<string, string>> = {
     back: { ko: '뒤로', en: 'Back', ja: '戻る', zh: '返回' },
@@ -32,11 +56,143 @@ export default function ArticleDetailPage() {
     notFound: { ko: '아티클을 찾을 수 없습니다', en: 'Article not found', ja: '記事が見つかりません', zh: '未找到文章' },
     error: { ko: '코스 생성에 실패했습니다. 다시 시도해주세요.', en: 'Failed to generate course. Please try again.', ja: 'コース生成に失敗しました。再度お試しください。', zh: '路线生成失败，请重试。' },
     retry: { ko: '다시 시도', en: 'Retry', ja: '再試行', zh: '重试' },
+    transitTitle: { ko: '대중교통 이동 정보', en: 'Transit Information', ja: '公共交通情報', zh: '公共交通信息' },
+    transitLoading: { ko: '대중교통 정보를 불러오는 중...', en: 'Loading transit info...', ja: '交通情報を読み込み中...', zh: '正在加载交通信息...' },
+    walking: { ko: '도보 이동', en: 'Walking', ja: '徒歩移動', zh: '步行' },
+    noRoute: { ko: '경로 정보 없음', en: 'No route info', ja: 'ルート情報なし', zh: '无路线信息' },
+    stops: { ko: '정거장', en: ' stops', ja: '駅', zh: '站' },
   };
 
   useEffect(function() {
     loadArticle();
   }, [articleId]);
+
+  useEffect(function() {
+    if (!itinerary) return;
+    calculateTransit(itinerary);
+  }, [itinerary]);
+
+  async function calculateTransit(itineraryData: any) {
+    setTransitLoading(true);
+    try {
+      await loadGoogleMaps();
+      var google = (window as any).google;
+      if (!google) return;
+
+      var allPlaces: { name: string; type: string }[] = [];
+      itineraryData.days.forEach(function(day: any) {
+        day.places.forEach(function(place: any) {
+          allPlaces.push({ name: place.name.replace(/\s*\(.*?\)\s*/g, '').trim(), type: place.type || 'attraction' });
+        });
+      });
+
+      var coords: { lat: number; lng: number; name: string }[] = [];
+      for (var i = 0; i < allPlaces.length; i++) {
+        var place = allPlaces[i];
+        var found = false;
+
+        var tables = ['restaurants', 'accommodations', 'attractions'];
+        for (var t = 0; t < tables.length; t++) {
+          var { data } = await supabase
+            .from(tables[t])
+            .select('name, latitude, longitude')
+            .ilike('name', '%' + place.name + '%')
+            .limit(1);
+
+          if (data && data.length > 0 && data[0].latitude && data[0].longitude) {
+            coords.push({ lat: data[0].latitude, lng: data[0].longitude, name: place.name });
+            found = true;
+            break;
+          }
+        }
+
+        if (!found) {
+          try {
+            var geocoder = new google.maps.Geocoder();
+            var result = await new Promise(function(resolve, reject) {
+              geocoder.geocode({ address: place.name + ' 서울' }, function(results: any, status: any) {
+                if (status === 'OK' && results.length > 0) resolve(results[0]);
+                else reject(new Error('Geocode failed'));
+              });
+            }) as any;
+            coords.push({ lat: result.geometry.location.lat(), lng: result.geometry.location.lng(), name: place.name });
+          } catch (geoErr) {
+            console.error('Geocode error:', place.name);
+          }
+        }
+      }
+
+      if (coords.length < 2) {
+        setTransitLoading(false);
+        return;
+      }
+
+      var directionsService = new google.maps.DirectionsService();
+      var totalSegments = coords.length - 1;
+      var infoResults: any[] = new Array(totalSegments).fill(null);
+      var completed = 0;
+
+      for (var j = 0; j < coords.length - 1; j++) {
+        (function(origin, destination, index) {
+          directionsService.route(
+            {
+              origin: new google.maps.LatLng(origin.lat, origin.lng),
+              destination: new google.maps.LatLng(destination.lat, destination.lng),
+              travelMode: google.maps.TravelMode.TRANSIT,
+              region: 'kr',
+            },
+            function(result: any, status: any) {
+              if (status === 'OK') {
+                var leg = result.routes[0].legs[0];
+                var steps = leg.steps || [];
+                var transitSteps: any[] = [];
+
+                steps.forEach(function(step: any) {
+                  if (step.travel_mode === 'TRANSIT') {
+                    var line = step.transit.line;
+                    transitSteps.push({
+                      vehicle: line.vehicle.type,
+                      name: line.short_name || line.name,
+                      color: line.color || '#4285F4',
+                      textColor: line.text_color || '#FFFFFF',
+                      numStops: step.transit.num_stops,
+                      departure: step.transit.departure_stop.name,
+                      arrival: step.transit.arrival_stop.name,
+                    });
+                  }
+                });
+
+                infoResults[index] = {
+                  from: origin.name,
+                  to: destination.name,
+                  duration: leg.duration.text,
+                  distance: leg.distance.text,
+                  steps: transitSteps,
+                };
+              } else {
+                infoResults[index] = {
+                  from: origin.name,
+                  to: destination.name,
+                  duration: null,
+                  distance: null,
+                  steps: [],
+                };
+              }
+
+              completed++;
+              if (completed === totalSegments) {
+                setTransitInfo(infoResults);
+                setTransitLoading(false);
+              }
+            }
+          );
+        })(coords[j], coords[j + 1], j);
+      }
+    } catch (err) {
+      console.error('Transit calculation error:', err);
+      setTransitLoading(false);
+    }
+  }
 
   async function loadArticle() {
     try {
@@ -182,6 +338,71 @@ export default function ArticleDetailPage() {
             </h2>
           </div>
           <ItineraryMap itinerary={itinerary} />
+
+          {/* 대중교통 이동 정보 */}
+          {transitLoading && (
+            <div className="bg-white rounded-2xl border p-4 text-center">
+              <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
+                <div className="w-4 h-4 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+                {labels.transitLoading[locale]}
+              </div>
+            </div>
+          )}
+
+          {transitInfo.length > 0 && !transitLoading && (
+            <div className="bg-white rounded-2xl border overflow-hidden">
+              <div className="px-4 py-3 bg-gray-50 border-b">
+                <h3 className="text-sm font-bold text-gray-700 flex items-center gap-1.5">
+                  🚇 {labels.transitTitle[locale]}
+                </h3>
+              </div>
+              <div className="p-3 space-y-2 max-h-60 overflow-y-auto">
+                {transitInfo.map(function(info, idx) {
+                  if (!info) return null;
+                  return (
+                    <div key={idx} className="bg-gray-50 rounded-xl p-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-bold text-gray-700">
+                          {info.from} → {info.to}
+                        </span>
+                        {info.duration && (
+                          <span className="text-xs text-blue-600 font-semibold">{info.duration}</span>
+                        )}
+                      </div>
+                      {info.steps.length > 0 ? (
+                        <div className="flex flex-wrap gap-1.5">
+                          {info.steps.map(function(step: any, si: number) {
+                            var icon = step.vehicle === 'SUBWAY' ? '🚇' :
+                                       step.vehicle === 'BUS' ? '🚌' :
+                                       step.vehicle === 'HEAVY_RAIL' ? '🚆' : '🚍';
+                            return (
+                              <div key={si} className="flex items-center gap-1.5 text-xs flex-wrap">
+                                <span
+                                  className="px-2 py-0.5 rounded-full font-bold"
+                                  style={{ backgroundColor: step.color, color: step.textColor }}
+                                >
+                                  {icon} {step.name}
+                                </span>
+                                <span className="text-gray-500">
+                                  {step.departure} → {step.arrival}
+                                </span>
+                                <span className="text-gray-400">({step.numStops}{labels.stops[locale]})</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <span className="text-xs text-gray-400">
+                          {info.duration ? labels.walking[locale] : labels.noRoute[locale]}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           <ItineraryCard itinerary={itinerary} />
         </div>
       )}
