@@ -162,7 +162,7 @@ export default function PlaceCard({
               >
                 {t('explore.reviewView')}
               </button>
-              
+              <a
                 href={'https://www.google.com/search?q=' + encodeURIComponent(name + ' 서울')}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -178,6 +178,7 @@ export default function PlaceCard({
     </div>
   );
 }
+
 
 
 
