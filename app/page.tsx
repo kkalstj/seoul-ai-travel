@@ -475,6 +475,37 @@ export default function Home() {
           <p className="text-gray-500 text-sm mt-1">{t('home.attractionCount')}</p>
         </Link>
       </div>
+
+      {/* 서비스 소개 */}
+      <div className="mt-12 bg-white rounded-2xl border p-6 md:p-8">
+        <h2 className="font-bold text-lg text-gray-900 mb-4">
+          {locale === 'ko' ? 'Seoul AI Travel은 어떤 서비스인가요?' :
+           locale === 'ja' ? 'Seoul AI Travelとはどんなサービスですか？' :
+           locale === 'zh' ? 'Seoul AI Travel是什么样的服务？' :
+           'What is Seoul AI Travel?'}
+        </h2>
+        <div className="space-y-4 text-sm text-gray-600 leading-relaxed">
+          <p>
+            {locale === 'ko' ? 'Seoul AI Travel은 Google Gemini AI 기술을 활용하여 서울 여행을 계획하는 모든 분들에게 맞춤형 여행 코스를 추천해 드리는 무료 서비스입니다. 단순히 인기 관광지를 나열하는 것이 아니라, 사용자의 취향, 일정, 인원, 여행 스타일을 종합적으로 분석하여 최적의 동선을 설계합니다. 음식점, 관광지, 숙소 등 12만 건 이상의 서울 관광 데이터를 AI가 실시간으로 분석하고, 각 장소 간의 대중교통 경로와 소요 시간까지 함께 안내하여 효율적인 여행을 도와드립니다.' :
+             locale === 'ja' ? 'Seoul AI TravelはGoogle Gemini AI技術を活用し、ソウル旅行を計画するすべての方にカスタマイズされた旅行コースを推薦する無料サービスです。単に人気観光地を羅列するのではなく、ユーザーの好み、日程、人数、旅行スタイルを総合的に分析して最適な動線を設計します。レストラン、観光地、宿泊施設など12万件以上のソウル観光データをAIがリアルタイムで分析し、各場所間の公共交通ルートと所要時間もご案内します。' :
+             locale === 'zh' ? 'Seoul AI Travel是一项利用Google Gemini AI技术，为所有计划首尔旅行的用户推荐定制旅行路线的免费服务。我们不仅仅是列出热门景点，而是综合分析用户的喜好、行程、人数和旅行风格，设计最优路线。AI实时分析超过12万条首尔旅游数据，包括餐厅、景点、住宿等，并为您提供各地点之间的公共交通路线和所需时间。' :
+             'Seoul AI Travel is a free service that uses Google Gemini AI technology to recommend personalized travel courses for everyone planning a trip to Seoul. Rather than simply listing popular attractions, we comprehensively analyze your preferences, schedule, group size, and travel style to design optimal routes. Our AI analyzes over 120,000 Seoul tourism data points in real-time, including restaurants, attractions, and accommodations, and provides public transit routes and travel times between each location.'}
+          </p>
+          <p>
+            {locale === 'ko' ? '또한 AI가 최신 트렌드를 반영하여 매주 새로운 여행 아티클을 자동 생성합니다. 미슐랭 선정 맛집, 화제의 TV 프로그램 촬영지, 계절별 축제와 행사 정보 등을 반영한 테마별 여행 코스를 통해 항상 새롭고 신선한 서울 여행을 경험하실 수 있습니다. 내 여행 기능을 통해 AI가 추천한 코스를 저장하고, 장소를 자유롭게 추가하거나 삭제하며 나만의 맞춤 여행 일정을 완성할 수 있습니다. 공유 기능을 활용하면 친구나 가족과 함께 여행 계획을 공유하는 것도 간편합니다.' :
+             locale === 'ja' ? 'また、AIが最新トレンドを反映して毎週新しい旅行記事を自動生成します。ミシュラン選定グルメ、話題のTV番組ロケ地、季節ごとの祭りやイベント情報を反映したテーマ別旅行コースで、常に新鮮なソウル旅行を体験できます。マイトリップ機能でAI推薦コースを保存し、場所を自由に追加・削除して自分だけの旅行日程を完成できます。共有機能で友人や家族と旅行計画を簡単に共有することもできます。' :
+             locale === 'zh' ? '此外，AI每周自动生成反映最新趋势的旅行文章。通过反映米其林推荐餐厅、热门电视节目拍摄地、各季节庆典和活动信息的主题旅行路线，您可以随时体验新鲜的首尔之旅。通过我的旅行功能，您可以保存AI推荐的路线，自由添加或删除地点，完成专属定制行程。利用分享功能，还可以轻松与朋友或家人共享旅行计划。' :
+             'Additionally, our AI automatically generates new travel articles every week reflecting the latest trends. Through themed travel courses featuring Michelin-selected restaurants, trending TV show filming locations, and seasonal festival information, you can always experience fresh and exciting Seoul trips. With the My Trip feature, you can save AI-recommended courses, freely add or remove places, and complete your own customized itinerary. The sharing feature makes it easy to share travel plans with friends and family.'}
+          </p>
+          <p>
+            {locale === 'ko' ? '서울의 날씨와 현재 진행 중인 행사 정보도 실시간으로 제공되어 여행 준비에 참고하실 수 있으며, 한국어, 영어, 일본어, 중국어 4개 언어를 지원하여 전 세계 여행자들이 편리하게 이용할 수 있습니다. Seoul AI Travel과 함께 당신만의 특별한 서울 여행을 시작해 보세요.' :
+             locale === 'ja' ? 'ソウルの天気や現在開催中のイベント情報もリアルタイムで提供され、旅行準備にお役立ていただけます。韓国語、英語、日本語、中国語の4言語に対応し、世界中の旅行者が便利にご利用いただけます。Seoul AI Travelと一緒に、あなただけの特別なソウル旅行を始めましょう。' :
+             locale === 'zh' ? '首尔的天气和当前举办的活动信息也会实时提供，供您参考准备旅行。支持韩语、英语、日语、中文四种语言，方便全球旅行者使用。与Seoul AI Travel一起，开启属于您的特别首尔之旅吧。' :
+             'Real-time Seoul weather and current event information are also provided to help you prepare for your trip. Supporting four languages — Korean, English, Japanese, and Chinese — travelers from around the world can conveniently use our service. Start your special Seoul journey with Seoul AI Travel today.'}
+          </p>
+        </div>
+      </div>
+      
     </div>
   );
 }
