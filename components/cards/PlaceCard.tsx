@@ -124,23 +124,6 @@ export default function PlaceCard({
             <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors truncate">
               {name}
             </h3>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleReview}
-                className="text-xs text-blue-600 hover:underline"
-              >
-                {t('explore.reviewView')}
-              </button>
-              
-                href={'https://www.google.com/search?q=' + encodeURIComponent(name + ' 서울')}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={function(e) { e.stopPropagation(); }}
-                className="flex items-center gap-0.5 text-xs text-gray-400 hover:text-blue-600 transition"
-              >
-                <ExternalLink size={12} />
-              </a>
-            </div>
           </div>
 
           {category && (
@@ -172,18 +155,30 @@ export default function PlaceCard({
                 </>
               )}
             </div>
-            <button
-              onClick={handleReview}
-              className="text-xs text-blue-600 hover:underline"
-            >
-              {t('explore.reviewView')}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleReview}
+                className="text-xs text-blue-600 hover:underline"
+              >
+                {t('explore.reviewView')}
+              </button>
+              
+                href={'https://www.google.com/search?q=' + encodeURIComponent(name + ' 서울')}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={function(e) { e.stopPropagation(); }}
+                className="flex items-center gap-0.5 text-xs text-gray-400 hover:text-blue-600 transition"
+              >
+                <ExternalLink size={12} />
+              </a>
+            </div>
           </div>
         </div>
       </div>
     </div>
   );
 }
+
 
 
 
